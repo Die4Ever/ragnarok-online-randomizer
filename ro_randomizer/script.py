@@ -11,9 +11,10 @@ class ScriptStatement():
 
 
 class CodeTree(list):
-    def __init__(self, content):
+    def __init__(self, content, start_idx):
         self.content = content
         self.type = 'tree'
+        self.start_idx = start_idx
     
     def append(self, item):
         if item:
@@ -60,7 +61,7 @@ def parse_script(content, sub=False, idx=-1):
     buf = ''
     start_idx = 0
     prev = ''
-    tree = CodeTree(content)
+    tree = CodeTree(content, idx)
 
     for c in content:
         idx+=1

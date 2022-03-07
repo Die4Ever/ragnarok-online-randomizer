@@ -12,7 +12,86 @@ from ro_randomizer.script import *
 
 # for cities we'll probably want to remember which warps go to outdoor areas and which go to indoor areas
 
+class MapTypes(Enum):
+    FIELD = 1
+    CITY = 2
+    DUNGEON = 3
+    INDOORS = 4
+
+
+maps = {}
+class Warp():
+    def __init__(self, s):
+        self.statement = s
+        self.map = s.args[0][0]
+        self.fromX = int(s.args[0][1])
+        self.fromY = int(s.args[0][2])
+        self.facing = int(s.args[0][3])
+        self.warpname = s.args[2][0]
+        self.spanX = int(s.args[3][0])
+        self.spanY = int(s.args[3][1])
+        self.toMap = s.args[3][2]
+        self.toX = int(s.args[3][3])
+        self.toY = int(s.args[3][4])
+    
+    def __repr__(self):
+        return self.map + " -> " + self.toMap
+
+
 class Map():
+    def __init__(self, name):
+        self.warps = []
+        self.name = name
+        self.type = MapTypes.FIELD
+    
+    def append(self, warp):
+        self.warps.append(warp)
+        if warp.toMap not in maps:
+            maps[warp.toMap] = Map(warp.toMap)
+
+    def __repr__(self):
+        return str(self.__dict__)
+    
+    def estimate_position(self, fromWarp, fromMap):
+        if not hasattr(fromMap, 'x'):
+            return
+        x = fromMap.x + fromWarp.fromX
+        x -= fromWarp.toX
+        y = fromMap.y + fromWarp.fromY
+        y -= fromWarp.toY
+        if not hasattr(self, 'x'):
+            self.x = x
+            self.y = y
+        else:
+            self.x = (self.x + x) / 2
+            self.y = (self.y + y) / 2
+
+def estimate_positions():
+    num_none = len(maps)
+    # init the first map to position 0
+    for map in maps:
+        m = maps[map]
+        m.x = 0
+        m.y = 0
+        break
+    
+    # crawl the list
+    for i in range(1,100):
+        num_none = 0
+        for map in maps:
+            m = maps[map]
+            if not hasattr(m, 'x'):
+                num_none += 1
+                continue
+            for w in m.warps:
+                maps[w.toMap].estimate_position(w, m)
+    
+    for map in maps:
+            m = maps[map]
+            if not hasattr(m, 'x'):
+                notice("map missing position:" + map)
+
+class MapScript():
     # approximate location? list of the warps in this map? a desired danger rating?
     def __init__(self, file):
         notice(file)
@@ -22,12 +101,13 @@ class Map():
         self.folder = path[-2]
         debug(self.__dict__)
         self.script = ROScript(file)
-        self.num_warps = 0
         for s in self.script.root:
             if s.type in ['warp','warp2']:
-                self.num_warps += 1
+                w = Warp(s)
+                if w.map not in maps:
+                    maps[w.map] = Map(w.map)
+                maps[w.map].append(w)
                 debug(s)
-        notice(self.name + " num_warps: " + str(self.num_warps))
     
     def read_file(self):
         self.content = None
@@ -54,4 +134,7 @@ def entrance_rando():
     for input in settings['inputs']['warps']:
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
-                m = Map(file)
+                ms = MapScript(file)
+    
+    estimate_positions()
+    notice(maps['prontera'])

@@ -6,6 +6,7 @@ from pathlib import Path
 import random
 import time
 from timeit import default_timer as timer
+from enum import Enum
 
 # shared code for all ro_randomizer modules
 settings = None
