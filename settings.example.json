@@ -1,5 +1,10 @@
 {
-    "paths": {
+    "inputs": {
+        "sql": ["../rathena/sql-files/"],
+        "mobs": ["../rathena/npc/re/mobs/"],
+        "warps": ["../rathena/npc/re/warps/"]
+    },
+    "outputs": {
         "sql": "../rathena/sql-files/",
         "mobs": "../rathena/npc/re/mobs/",
         "warps": "../rathena/npc/re/warps/"

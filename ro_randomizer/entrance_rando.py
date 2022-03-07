@@ -1,4 +1,5 @@
 from ro_randomizer.base import *
+from ro_randomizer.script import *
 
 # https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L210-L229
 # <from mapname>,<fromX>,<fromY>,<facing>%TAB%warp%TAB%<warp name>%TAB%<spanx>,<spany>,<to mapname>,<toX>,<toY>
@@ -20,7 +21,13 @@ class Map():
         self.name = path[-1]
         self.folder = path[-2]
         debug(self.__dict__)
-        self.read_file()
+        self.script = ROScript(file)
+        self.num_warps = 0
+        for s in self.script.root:
+            if s.type in ['warp','warp2']:
+                self.num_warps += 1
+                debug(s)
+        notice(self.name + " num_warps: " + str(self.num_warps))
     
     def read_file(self):
         self.content = None
@@ -44,6 +51,7 @@ def entrance_rando():
     settings = get_settings()
     seed = settings['seed']
     printHeader("ENTRANCE RANDO!")
-    for file in insensitive_glob(settings['paths']['warps']+'/*'):
-        if file.endswith('.txt'):
-            m = Map(file)
+    for input in settings['inputs']['warps']:
+        for file in insensitive_glob(input+'/*'):
+            if file.endswith('.txt'):
+                m = Map(file)
