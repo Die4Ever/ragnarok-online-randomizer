@@ -1,0 +1,28 @@
+first randomize the overworld and dungeouns
+then choose some sub-optimal routes for getting between cities and mark them for low danger areas (weak enemies or non-hostile) so that lowbies can walk between cities
+then mark the other areas as higher danger areas
+next we randomize the mod spawns for these areas according to the danger rating
+then we can randomize skills/classes/items in the sql
+
+seasonal server rotation? all players start in the same city?
+
+Databases: https://github.com/rathena/rathena/blob/master/doc/source_doc.txt#L137-L164
+Maps: https://github.com/rathena/rathena/blob/master/doc/map_cache.txt
+Starting locations: https://github.com/rathena/rathena/blob/master/conf/char_athena.conf#L110-L117
+Item drop rates: https://github.com/rathena/rathena/blob/master/conf/battle/drops.conf#L38-L90
+Exp rates: https://github.com/rathena/rathena/blob/master/conf/battle/exp.conf
+Random monster stats: https://github.com/rathena/rathena/blob/master/conf/battle/monster.conf#L12-L19
+Player hp/sp multipliers: https://github.com/rathena/rathena/blob/master/conf/battle/player.conf#L12-L16
+Skills conf: https://github.com/rathena/rathena/blob/master/conf/battle/skill.conf
+MOTD maybe useful for randomizer hints: https://github.com/rathena/rathena/blob/master/conf/motd.txt
+Script setmapflag: https://github.com/rathena/rathena/blob/master/doc/sample/npc_test_setmapflag.txt
+Script regex: https://github.com/rathena/rathena/blob/master/doc/sample/npc_test_pcre.txt#L357
+Script instancing: https://github.com/rathena/rathena/blob/master/doc/sample/instancing.txt
+Script global functions: https://github.com/rathena/rathena/blob/master/npc/other/Global_Functions.txt
+Message boards: https://github.com/rathena/rathena/blob/master/npc/other/msg_boards.txt
+Guide NPCs probably need to match randomized things: https://github.com/rathena/rathena/tree/master/npc/re/guides
+Global data seems to be stored by NPC ID: https://github.com/rathena/rathena/blob/master/npc/re/other/Global_Functions.txt#L18
+Monster spawns: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L133-L189
+Monster spawners: https://github.com/rathena/rathena/tree/master/npc/re/mobs 
+Warps are also defined in scripts, might be useful for path finding: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L210-L229
+Variable sigils: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L437-L525
