@@ -1,2 +1,5 @@
 {
+    "city_distance": 100,
+    "lowbie_city_distance": 300,
+    "max_lowbie_danger_rating": 10
 }

@@ -8,10 +8,11 @@ def randomize(local_settings):
         seed = random.randrange(1,999999)
     else:
         seed = int(seed)
-    print("randomizing with seed: "+str(seed))
+    printHeader("randomizing with seed: "+str(seed))
     settings['seed'] = seed
-    print("settings: ")
-    print(repr(settings))
+    notice("settings: ")
+    notice(repr(settings))
     entrance_rando()
-    #randomize_spawns
-    #randomize_sql
+    #randomize_mobs for mob spawns according to the desired danger level of each map
+    #randomize_sql for skills/classes...
+    #randomize_config for leveling rates, item rates...

@@ -6,7 +6,8 @@ import json
 parser = argparse.ArgumentParser(description='Randomizer for Ragnarok Online private server.')
 parser.add_argument('--seed', help='What seed number to use.')
 args = vars(parser.parse_args())
-print(repr(args))
+notice('args: ')
+notice(repr(args))
 
 default_settings = {}
 with open('settings.default.json') as f:
