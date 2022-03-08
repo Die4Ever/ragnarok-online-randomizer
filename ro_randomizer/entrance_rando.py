@@ -108,6 +108,8 @@ def estimate_positions(location_anchors):
 def add_warp(w, type):
     if w.map not in maps:
         maps[w.map] = Map(w.map, type)
+    elif maps[w.map].type == MapTypes.OTHER and maps[w.map].type != type:
+        maps[w.map].type = type
     maps[w.map].append(w)
     debug(w)
 
@@ -122,7 +124,8 @@ def new_warp(statement, folder):
     elif folder == 'other' or folder == 'warps':
         type = MapTypes.OTHER
     else:
-        debug("unknown map type: "+folder)
+        notice("unknown map type: "+folder)
+    
     w = Warp(statement)
     add_warp(w, type)
 
