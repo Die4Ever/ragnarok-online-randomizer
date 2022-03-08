@@ -13,6 +13,7 @@ from ro_randomizer.script import *
 # for cities we'll probably want to remember which warps go to outdoor areas and which go to indoor areas
 
 class MapTypes(Enum):
+    UNKNOWN = 0
     FIELD = 1
     CITY = 2
     DUNGEON = 3
@@ -42,7 +43,9 @@ class Map():
     def __init__(self, name):
         self.warps = []
         self.name = name
-        self.type = MapTypes.FIELD
+        self.type = MapTypes.UNKNOWN
+        self.x = None
+        self.y = None
     
     def append(self, warp):
         self.warps.append(warp)
@@ -50,16 +53,16 @@ class Map():
             maps[warp.toMap] = Map(warp.toMap)
 
     def __repr__(self):
-        return str(self.__dict__)
+        return repr((self.name, self.type, self.x, self.y, len(self.warps)))
     
     def estimate_position(self, fromWarp, fromMap):
-        if not hasattr(fromMap, 'x'):
+        if fromMap.x is None:
             return
         x = fromMap.x + fromWarp.fromX
         x -= fromWarp.toX
         y = fromMap.y + fromWarp.fromY
         y -= fromWarp.toY
-        if not hasattr(self, 'x'):
+        if self.x is None:
             self.x = x
             self.y = y
         else:
@@ -69,18 +72,17 @@ class Map():
 def estimate_positions():
     num_none = len(maps)
     # init the first map to position 0
-    for map in maps:
-        m = maps[map]
-        m.x = 0
-        m.y = 0
-        break
+    maps['prontera'].x = 0
+    maps['prontera'].y = 0
     
     # crawl the list
     for i in range(1,100):
         num_none = 0
+        maps['prontera'].x = 0
+        maps['prontera'].y = 0
         for map in maps:
             m = maps[map]
-            if not hasattr(m, 'x'):
+            if m.x is None:
                 num_none += 1
                 continue
             for w in m.warps:
@@ -88,7 +90,7 @@ def estimate_positions():
     
     for map in maps:
             m = maps[map]
-            if not hasattr(m, 'x'):
+            if m.x is None:
                 notice("map missing position:" + map)
 
 class MapScript():
@@ -137,4 +139,9 @@ def entrance_rando():
                 ms = MapScript(file)
     
     estimate_positions()
-    notice(maps['prontera'])
+    notice(maps['prontera']) # center
+    notice(maps['payon']) # SE
+    notice(maps['alberta']) # more SE
+    notice(maps['morocc']) # SW
+    notice(maps['geffen']) # W and slightly N
+    notice(maps['aldebaran']) # N

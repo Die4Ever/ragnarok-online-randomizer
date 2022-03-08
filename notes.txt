@@ -6,6 +6,8 @@ then we can randomize skills/classes/items in the sql
 
 seasonal server rotation? all players start in the same city?
 
+https://4.bp.blogspot.com/-bMpR1CptmOs/TplRug8QO_I/AAAAAAAAACw/pW-dMGcehAs/s1600/World-map.jpg
+
 Databases: https://github.com/rathena/rathena/blob/master/doc/source_doc.txt#L137-L164
 Maps: https://github.com/rathena/rathena/blob/master/doc/map_cache.txt
 Starting locations: https://github.com/rathena/rathena/blob/master/conf/char_athena.conf#L110-L117
