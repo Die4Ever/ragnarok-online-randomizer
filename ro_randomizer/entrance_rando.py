@@ -93,6 +93,16 @@ def estimate_positions():
             if m.x is None:
                 notice("map missing position:" + map)
 
+def add_warp(w):
+    if w.map not in maps:
+        maps[w.map] = Map(w.map)
+    maps[w.map].append(w)
+    debug(w)
+
+def new_warp(statement):
+    w = Warp(statement)
+    add_warp(w)
+
 class MapScript():
     # approximate location? list of the warps in this map? a desired danger rating?
     def __init__(self, file):
@@ -105,11 +115,7 @@ class MapScript():
         self.script = ROScript(file)
         for s in self.script.root:
             if s.type in ['warp','warp2']:
-                w = Warp(s)
-                if w.map not in maps:
-                    maps[w.map] = Map(w.map)
-                maps[w.map].append(w)
-                debug(s)
+                new_warp(s)
     
     def read_file(self):
         self.content = None
