@@ -1,5 +1,8 @@
 {
     "city_distance": 100,
     "lowbie_city_distance": 300,
-    "max_lowbie_danger_rating": 10
+    "max_lowbie_danger_rating": 10,
+    "location_anchors": [
+        { "map": "prontera", "x": 0, "y": 0 }
+    ]
 }

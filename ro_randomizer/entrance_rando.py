@@ -46,6 +46,7 @@ class Map():
         self.type = MapTypes.UNKNOWN
         self.x = None
         self.y = None
+        self.conns_in = 0
     
     def append(self, warp):
         self.warps.append(warp)
@@ -68,25 +69,33 @@ class Map():
         else:
             self.x = (self.x + x) / 2
             self.y = (self.y + y) / 2
+        self.conns_in += 1
 
-def estimate_positions():
-    num_none = len(maps)
-    # init the first map to position 0
-    maps['prontera'].x = 0
-    maps['prontera'].y = 0
+def estimate_positions(location_anchors):
+    warps = {}
+    for a in location_anchors:
+        m = maps[a['map']]
+        m.x = a['x']
+        m.y = a['y']
+        # init the warps to crawl starting from our anchors
+        for w in m.warps:
+            if w not in warps:
+                warps[w] = 1
+                maps[w.toMap].estimate_position(w, maps[w.map])
     
-    # crawl the list
-    for i in range(1,100):
-        num_none = 0
-        maps['prontera'].x = 0
-        maps['prontera'].y = 0
-        for map in maps:
-            m = maps[map]
-            if m.x is None:
-                num_none += 1
-                continue
-            for w in m.warps:
-                maps[w.toMap].estimate_position(w, m)
+    # crawl and build the tree of warps
+    new_warps = {}
+    while 1:
+        num_warps = len(warps)
+        for f in warps.keys():
+            for w in maps[f.toMap].warps:
+                if w not in warps and w not in new_warps:
+                    new_warps[w] = 1
+                    maps[w.toMap].estimate_position(w, maps[w.map])
+        if len(new_warps) == 0:
+            break
+        warps.update(new_warps)
+        new_warps = {}
     
     for map in maps:
             m = maps[map]
@@ -144,10 +153,9 @@ def entrance_rando():
             if file.endswith('.txt'):
                 ms = MapScript(file)
     
-    estimate_positions()
+    estimate_positions(settings['location_anchors'])
     notice(maps['prontera']) # center
     notice(maps['payon']) # SE
     notice(maps['alberta']) # more SE
-    notice(maps['morocc']) # SW
     notice(maps['geffen']) # W and slightly N
     notice(maps['aldebaran']) # N

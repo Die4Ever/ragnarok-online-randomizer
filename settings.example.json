@@ -1,12 +1,12 @@
 {
     "inputs": {
         "sql": ["../rathena/sql-files/"],
-        "mobs": ["../rathena/npc/pre-re/mobs/"],
-        "warps": ["../rathena/npc/warps/","../rathena/npc/pre-re/warps/","../rathena/npc/re/warps/"]
+        "mobs": ["../rathena/npc/mobs/", ["../rathena/npc/re/mobs/"]],
+        "warps": ["../rathena/npc/warps/", "../rathena/npc/re/warps/"]
     },
     "outputs": {
         "sql": "../rathena/sql-files/",
-        "mobs": "../rathena/npc/pre-re/mobs/",
+        "mobs": "../rathena/npc/mobs/",
         "warps": "../rathena/npc/warps/"
     }
 }
