@@ -18,6 +18,7 @@ class MapTypes(Enum):
     CITY = 2
     DUNGEON = 3
     INDOORS = 4
+    OTHER = 5
 
 
 maps = {}
@@ -40,10 +41,10 @@ class Warp():
 
 
 class Map():
-    def __init__(self, name):
+    def __init__(self, name, type):
         self.warps = []
         self.name = name
-        self.type = MapTypes.UNKNOWN
+        self.type = type
         self.x = None
         self.y = None
         self.conns_in = 0
@@ -51,13 +52,15 @@ class Map():
     def append(self, warp):
         self.warps.append(warp)
         if warp.toMap not in maps:
-            maps[warp.toMap] = Map(warp.toMap)
+            maps[warp.toMap] = Map(warp.toMap, MapTypes.UNKNOWN)
 
     def __repr__(self):
-        return repr((self.name, self.type, self.x, self.y, len(self.warps)))
+        return repr((self.name, self.type, self.x, self.y, len(self.warps), self.conns_in))
     
     def estimate_position(self, fromWarp, fromMap):
         if fromMap.x is None:
+            return
+        if fromMap.type == MapTypes.DUNGEON and self.type != MapTypes.DUNGEON:
             return
         x = fromMap.x + fromWarp.fromX
         x -= fromWarp.toX
@@ -102,15 +105,26 @@ def estimate_positions(location_anchors):
             if m.x is None:
                 notice("map missing position:" + map)
 
-def add_warp(w):
+def add_warp(w, type):
     if w.map not in maps:
-        maps[w.map] = Map(w.map)
+        maps[w.map] = Map(w.map, type)
     maps[w.map].append(w)
     debug(w)
 
-def new_warp(statement):
+def new_warp(statement, folder):
+    type = MapTypes.UNKNOWN
+    if folder == 'cities':
+        type = MapTypes.CITY
+    elif folder == 'fields':
+        type = MapTypes.FIELD
+    elif folder == 'dungeons':
+        type = MapTypes.DUNGEON
+    elif folder == 'other' or folder == 'warps':
+        type = MapTypes.OTHER
+    else:
+        debug("unknown map type: "+folder)
     w = Warp(statement)
-    add_warp(w)
+    add_warp(w, type)
 
 class MapScript():
     # approximate location? list of the warps in this map? a desired danger rating?
@@ -124,7 +138,7 @@ class MapScript():
         self.script = ROScript(file)
         for s in self.script.root:
             if s.type in ['warp','warp2']:
-                new_warp(s)
+                new_warp(s, self.folder)
     
     def read_file(self):
         self.content = None

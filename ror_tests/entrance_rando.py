@@ -37,4 +37,4 @@ def warp(map, fromX, fromY, toMap, toX, toY):
         [0, 0, toMap, toX, toY]
     ]
     s = ScriptStatement('', False, 'warp', args, 0, 0)
-    return new_warp(s)
+    return new_warp(s, 'cities')
