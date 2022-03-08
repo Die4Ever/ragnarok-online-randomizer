@@ -100,17 +100,33 @@ def estimate_positions(location_anchors):
         warps.update(new_warps)
         new_warps = {}
     
+    (minx, miny, maxx, maxy) = (0,0,0,0)
     for map in maps:
             m = maps[map]
-            if m.x is None:
+            if m.x is None and m.type == MapTypes.CITY:
                 notice("map missing position:" + map)
+            elif m.x is not None:
+                minx = min(m.x, minx)
+                miny = min(m.y, miny)
+                maxx = max(m.x, maxx)
+                maxy = max(m.y, maxy)
+    notice("minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy))
 
 def add_warp(w, type):
+    m = None
     if w.map not in maps:
-        maps[w.map] = Map(w.map, type)
-    elif maps[w.map].type == MapTypes.OTHER and maps[w.map].type != type:
-        maps[w.map].type = type
-    maps[w.map].append(w)
+        m = maps[w.map] = Map(w.map, type)
+    elif maps[w.map].type != type and type != MapTypes.OTHER:
+        m = maps[w.map]
+        oldtype = m
+        if m.type == MapTypes.OTHER:
+            m.type = type
+        elif m.type == MapTypes.CITY:
+            m.type = type
+    else:
+        m = maps[w.map]
+    
+    m.append(w)
     debug(w)
 
 def new_warp(statement, folder):
@@ -171,8 +187,12 @@ def entrance_rando():
                 ms = MapScript(file)
     
     estimate_positions(settings['location_anchors'])
-    notice(maps['prontera']) # center
-    notice(maps['payon']) # SE
-    notice(maps['alberta']) # more SE
-    notice(maps['geffen']) # W and slightly N
-    notice(maps['aldebaran']) # N
+    for m in maps.values():
+        if m.type == MapTypes.CITY:
+            debug(m)
+
+    # now mark each area with their closest city, to group them into biomes?
+    # shuffle the areas of each biome slightly, mostly just to change the location of the city
+    # then connect the biomes to each other randomly
+    # then mark the desired danger ratings for the lowbie routes for travelling between cities
+    # mark higher danger ratings away from the lowbie routes and for dungeons

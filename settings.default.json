@@ -3,6 +3,8 @@
     "lowbie_city_distance": 300,
     "max_lowbie_danger_rating": 10,
     "location_anchors": [
-        { "map": "prontera", "x": 0, "y": 0 }
+        { "map": "prontera", "x": 0, "y": 0 },
+        { "map": "ayothaya", "x": 1600, "y": 1800},
+        { "map": "moscovia", "x": 1800, "y": -2100}
     ]
 }
