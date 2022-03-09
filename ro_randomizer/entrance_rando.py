@@ -115,8 +115,6 @@ def add_warp(w, type):
         oldtype = m
         if m.type == MapTypes.OTHER:
             m.type = type
-        elif m.type == MapTypes.CITY:
-            m.type = type
     else:
         m = maps[w.map]
     
@@ -148,6 +146,8 @@ class MapScript():
         self.name = path[-1]
         self.folder = path[-2]
         debug(self.__dict__)
+        if self.folder == 'other' or self.folder == 'warps':
+            return
         self.script = ROScript(file)
         for s in self.script.root:
             if s.type in ['warp','warp2']:
@@ -203,7 +203,7 @@ def write_on_world_string(arr, str, pos, off, scale):
     s = str[0:4]
     if len(str) > len(s):
         notice(s+' == '+str)
-    if len(s) >=3:
+    if len(s) >= 3:
         x -= 1
     
     for c in s:
