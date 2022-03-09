@@ -100,17 +100,11 @@ def estimate_positions(location_anchors):
         warps.update(new_warps)
         new_warps = {}
     
-    (minx, miny, maxx, maxy) = (0,0,0,0)
     for map in maps:
             m = maps[map]
-            if m.x is None and m.type == MapTypes.CITY:
+            if m.x is None and m.type == MapTypes.CITY and len(m.warps) > 0:
                 notice("map missing position:" + map)
-            elif m.x is not None:
-                minx = min(m.x, minx)
-                miny = min(m.y, miny)
-                maxx = max(m.x, maxx)
-                maxy = max(m.y, maxy)
-    notice("minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy))
+
 
 def add_warp(w, type):
     m = None
@@ -190,9 +184,85 @@ def entrance_rando():
     for m in maps.values():
         if m.type == MapTypes.CITY:
             debug(m)
+    
+    notice(world_to_string())
 
     # now mark each area with their closest city, to group them into biomes?
     # shuffle the areas of each biome slightly, mostly just to change the location of the city
+    # or shuffle them completely by detaching everything and attaching everything starting with the city
     # then connect the biomes to each other randomly
     # then mark the desired danger ratings for the lowbie routes for travelling between cities
     # mark higher danger ratings away from the lowbie routes and for dungeons
+
+
+def write_on_world_string(arr, str, pos, off, scale):
+    x = (pos[0] + off[0]) * scale[0]
+    x = int(x)
+    y = (pos[1] + off[1]) * scale[1]
+    y = int(y)
+    s = str[0:4]
+    if len(str) > len(s):
+        notice(s+' == '+str)
+    if len(s) >=3:
+        x -= 1
+    
+    for c in s:
+        if y >= len(arr) or x >= len(arr[y]):
+            printError('{}: {}, {}'.format(s, y, x))
+        else:
+            arr[y][x] = ord(c)
+        x += 1
+    return (x, y)
+
+
+def world_to_string():
+    # make a 2D array of characters
+    # settings for width and height scaling
+    width = 80
+    height = 70
+    tarr = bytearray(width)
+    for i in range(width):
+        tarr[i] = ord(' ')
+    arr = []
+    for i in range(height):
+        arr.append(tarr.copy())
+
+    (minx, miny, maxx, maxy) = (0,0,0,0)
+    for m in maps.values():
+        if m.x is not None:
+            minx = min(m.x, minx)
+            miny = min(m.y, miny)
+            maxx = max(m.x, maxx)
+            maxy = max(m.y, maxy)
+            for w in m.warps:
+                x = m.x + w.fromX
+                y = m.y + w.fromY
+                minx = min(x, minx)
+                miny = min(y, miny)
+                maxx = max(x, maxx)
+                maxy = max(y, maxy)
+    
+    # width-3 because we want to show city names
+    scalex = (width-3) / (maxx - minx)
+    scaley = (height-1) / (maxy - miny)
+    # y axis is upside-down
+    scaley *= -1
+    scale = (scalex, scaley)
+    off = (-minx, miny)
+    
+    # first write a character to each spot where an area is, indicating danger rating
+    # then write . for each teleporter
+    for m in maps.values():
+        if m.x is not None:
+            for w in m.warps:
+                write_on_world_string(arr, '.', (m.x+w.fromX, m.y+w.fromY), off, scale)
+    
+    # then write city names (in all caps to differentiate?)
+    for m in maps.values():
+        if m.type == MapTypes.CITY and m.x is not None:
+            write_on_world_string(arr, m.name.upper(), (m.x, m.y), off, scale)
+    
+    ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy)
+    for i in range(height):
+        ret += '\n' + arr[i].decode('ascii')
+    return ret

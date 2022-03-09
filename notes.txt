@@ -5,6 +5,9 @@ next we randomize the mod spawns for these areas according to the danger rating
 then we can randomize skills/classes/items in the sql
 
 seasonal server rotation? all players start in the same city?
+rerandomize the maps layout every week? can I reroll other stats and force the players to respec their characters?
+separate seed for each module?
+maybe that would make seasonal resets obsolete?
 
 https://4.bp.blogspot.com/-bMpR1CptmOs/TplRug8QO_I/AAAAAAAAACw/pW-dMGcehAs/s1600/World-map.jpg
 https://ratemyserver.net/worldmap.php#
@@ -29,3 +32,120 @@ Monster spawns: https://github.com/rathena/rathena/blob/master/doc/script_comman
 Monster spawners: https://github.com/rathena/rathena/tree/master/npc/re/mobs 
 Warps are also defined in scripts, might be useful for path finding: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L210-L229
 Variable sigils: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L437-L525
+
+
+
+PRT == PRT_GLD
+PAY == PAYON
+YUN == YUNO
+ALB == ALBERTA
+AYO == AYOTHAYA
+EIN == EINBROCH
+GEF == GEFFEN
+MOS == MOSCOVIA
+PRO == PRONTERA
+VEI == VEINS
+YUN == YUNO_PRE
+IZL == IZLUDE
+RAC == RACHEL
+minx: -2554.293277537836, miny: -2344.02294921875, maxx: 2126.55859375, maxy: 2082.109304369253
+
+
+
+
+
+                                                                                                            ..
+
+                                                                ...
+                                                                .                                      . ......
+                                                               .  .                                    .... .
+                                                                    .                                  ..  ...
+                                                                .. ..                                  ..
+                                                                  .                                   AYO ..
+
+                                       .
+
+
+
+
+                                                                   .
+                                        .                     .
+
+                                        .     .                 ..
+                                              .     .  .       ......            .
+                                       .                     . ......
+      .                                                        ......
+   ..                                                           .....            .
+     ..   .                                        .    .       .. ..
+  ..  ..                           .          .    . .  .          .
+. . . .... .                .        .         ..
+      ..   .                 .       .          .    .       .
+      . .                              .                .             .
+    .  . .  .       .                                         .    .               .
+    . .. .                                                   ...   .               ..
+   .   ..                                           .              .                     ...
+. .      .                                    .   .      .    .. . .  .  .                          .... . . .
+       ..       .    .           .         .    . .    .     .. .. .  .      .    .                 . .. . . .
+                                   .         .               .. .     . . ..   . .     .  ..        ......
+     .  .  .                     ...                   .     ... .... .          .     .  . .       . ... . .
+                                 .......              .    ......... . ...       .          ..         ..    .
+      ..            .       .    .......                    ... ...   .  . .  .  . .        ..  .   .. ...
+      ..                         . .....      .              .... ..............  .     .......  .  ....... ..
+                               GEF  . .                   PRT .......... ...  .   .. .. . .....  .  ..    .
+                .   .                             .   .  . .... ...YUN.... ....  .  .. . ..         ..
+     .    ..        ... ..                        .   ..      ...... .. ....... ..... ...
+      .             .....  . .           .             .      .. ...........................
+                    ... . ..                               .    ........... ....... .   . .
+                    ... ..                                   . .. ..............  ... .           ..
+                    .    ....                               .  ............ .. . .. .
+                       ..... ..               .        ..    . . ... .........   ..        ..
+                    . .......        .        .        .        ..  .........EIN
+                       ...... .  ..   .                .  . .    YUN...........
+                       .  .  ...      .                   .  .PRO .   .........
+                       .. .......             .        .   .   .  . RAC .... .
+                        . ......              .        .    . ....   .  ......     .
+                               . .                          .   .   . . ..
+                                                 .   . .       . .    .    ..      .     .  .   .
+                                                     . .               IZL    .
+                                 .  ..        .        .           ...        .   .
+                              .             .          ..  ..   ..   ..
+                                            .      ..        .  .  .    .  .               .        .
+                                    ..         .        .               ... .  . .
+                                              .              . ...
+                                             .                  .  .   .   .     ...   .
+                                             ..       .            .    ...      .   .      ....  .
+                                                      .          .  .  ..  ..    .          ...
+                                                    .     .    . .     . .. .    .       .   .
+                                                        .   .   ..       .     ....   .. ... .           .
+                                                              ... .. .....  ...  ... . .......
+                                                              .. .....        . .... .. .. ...  .     .
+                                                              .. . ....       ....       ........
+                                                              .. . . .        .  .        . . ...
+                                                              .    .        . .   . .. .   . .. .
+                                                               .  ...          . .. ... .. .  .     .
+                                                           VEI             .      .       .      .
+                                                                      ..  . ..        PAY .
+
+                                                                            ..    .
+                                                                                           .      .
+                                                                    .             .
+                                                                                      . .       .    .
+
+                                                                           .   ..             .   .
+                                                                                        . .
+                                                                                         .
+                                                                                    .               .
+                                                                                           .
+                                                                                       .         .  ..
+                                                                                       .     .    .   .
+                                                                                        .           .......
+                                                                                           .        ....
+                                                                                            .        .. .
+                                                                                                  ALB....
+                                                                                                   .
+                                                                                                                 ...
+                                                                                                              .  ...
+                                                                                                              . ....
+                                                                                                                . ..
+                                                                                                              .    . .
+                                                                                                           MOS  .
