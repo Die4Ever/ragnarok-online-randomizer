@@ -113,3 +113,11 @@ def rg(name, pattern='[^,\t]+'):
 
 def clamp(num, min_value, max_value):
    return max(min(num, max_value), min_value)
+
+class Point():
+    def __init__(self, x, y):
+        self.x = float(x)
+        self.y = float(y)
+
+    def __repr__(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ")"

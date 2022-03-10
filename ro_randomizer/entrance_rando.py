@@ -26,15 +26,12 @@ class Warp():
     def __init__(self, s):
         self.statement = s
         self.map = s.args[0][0]
-        self.fromX = int(s.args[0][1])
-        self.fromY = int(s.args[0][2])
+        self.fromPos = Point(int(s.args[0][1]), int(s.args[0][2]))
         self.facing = int(s.args[0][3])
         self.warpname = s.args[2][0]
-        self.spanX = int(s.args[3][0])
-        self.spanY = int(s.args[3][1])
+        self.span = Point(int(s.args[3][0]), int(s.args[3][1]))
         self.toMap = s.args[3][2]
-        self.toX = int(s.args[3][3])
-        self.toY = int(s.args[3][4])
+        self.toPos = Point(int(s.args[3][3]), int(s.args[3][4]))
 
     def __repr__(self):
         return self.map + " -> " + self.toMap
@@ -45,8 +42,7 @@ class Map():
         self.warps = []
         self.name = name
         self.type = type
-        self.x = None
-        self.y = None
+        self.position = None
         self.conns_in = 0
 
     def append(self, warp):
@@ -55,31 +51,29 @@ class Map():
             maps[warp.toMap] = Map(warp.toMap, MapTypes.UNKNOWN)
 
     def __repr__(self):
-        return repr((self.name, self.type, self.x, self.y, len(self.warps), self.conns_in))
+        return self.name + "("+self.type.name+") " + repr(self.position) + ", " + str(len(self.warps)) + " warps out, " + str(self.conns_in) + " warps in"
 
     def estimate_position(self, fromWarp, fromMap):
-        if fromMap.x is None:
+        if fromMap.position is None:
             return
         if fromMap.type == MapTypes.DUNGEON and self.type != MapTypes.DUNGEON:
             return
-        x = fromMap.x + fromWarp.fromX
-        x -= fromWarp.toX
-        y = fromMap.y + fromWarp.fromY
-        y -= fromWarp.toY
-        if self.x is None:
-            self.x = x
-            self.y = y
+        x = fromMap.position.x + fromWarp.fromPos.x
+        x -= fromWarp.toPos.x
+        y = fromMap.position.y + fromWarp.fromPos.y
+        y -= fromWarp.toPos.y
+        if self.position is None:
+            self.position = Point(x, y)
         else:
-            self.x = (self.x + x) / 2
-            self.y = (self.y + y) / 2
+            self.position.x = (self.position.x + x) / 2
+            self.position.y = (self.position.y + y) / 2
         self.conns_in += 1
 
 def estimate_positions(location_anchors):
     warps = {}
     for a in location_anchors:
         m = maps[a['map']]
-        m.x = a['x']
-        m.y = a['y']
+        m.position = Point(a['x'], a['y'])
         # init the warps to crawl starting from our anchors
         for w in m.warps:
             if w not in warps:
@@ -102,7 +96,7 @@ def estimate_positions(location_anchors):
 
     for map in maps:
             m = maps[map]
-            if m.x is None and m.type == MapTypes.CITY and len(m.warps) > 0:
+            if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
                 notice("map missing position:" + map)
 
 
@@ -187,7 +181,9 @@ def entrance_rando():
 
     debug(world_to_string())
 
-    # now mark each area with their closest city, to group them into biomes?
+    # TODO:
+    # now mark each area with their closest city, to group them into biomes? how will I keep the deserts of ex-morroc together?
+    #   I can just do a hardcoded maps['morroc'].position = ...
     # shuffle the areas of each biome slightly, mostly just to change the location of the city
     # or shuffle them completely by detaching everything and attaching everything starting with the city
     # then connect the biomes to each other randomly
@@ -196,9 +192,9 @@ def entrance_rando():
 
 
 def write_on_world_string(arr, str, pos, off, scale):
-    x = (pos[0] + off[0]) * scale[0]
+    x = (pos.x + off.x) * scale.x
     x = int(x)
-    y = (pos[1] + off[1]) * scale[1]
+    y = (pos.y + off.y) * scale.y
     y = int(y)
     s = str[0:4]
     if len(str) > len(s):
@@ -227,14 +223,14 @@ def world_to_string(width=80, height=70):
 
     (minx, miny, maxx, maxy) = (0,0,0,0)
     for m in maps.values():
-        if m.x is not None:
-            minx = min(m.x, minx)
-            miny = min(m.y, miny)
-            maxx = max(m.x, maxx)
-            maxy = max(m.y, maxy)
+        if m.position is not None:
+            minx = min(m.position.x, minx)
+            miny = min(m.position.y, miny)
+            maxx = max(m.position.x, maxx)
+            maxy = max(m.position.y, maxy)
             for w in m.warps:
-                x = m.x + w.fromX
-                y = m.y + w.fromY
+                x = m.position.x + w.fromPos.x
+                y = m.position.y + w.fromPos.y
                 minx = min(x, minx)
                 miny = min(y, miny)
                 maxx = max(x, maxx)
@@ -245,20 +241,21 @@ def world_to_string(width=80, height=70):
     scaley = (height-1) / (maxy - miny)
     # y axis is upside-down
     scaley *= -1
-    scale = (scalex, scaley)
-    off = (-minx, miny)
+    scale = Point(scalex, scaley)
+    off = Point(-minx, miny)
 
     # first write a character to each spot where an area is, indicating danger rating
     # then write . for each teleporter
     for m in maps.values():
-        if m.x is not None:
+        if m.position is not None:
             for w in m.warps:
-                write_on_world_string(arr, '.', (m.x+w.fromX, m.y+w.fromY), off, scale)
+                pos = Point(m.position.x+w.fromPos.x, m.position.y+w.fromPos.y)
+                write_on_world_string(arr, '.', pos, off, scale)
 
     # then write city names (in all caps to differentiate?)
     for m in maps.values():
-        if m.type == MapTypes.CITY and m.x is not None:
-            write_on_world_string(arr, m.name.upper(), (m.x, m.y), off, scale)
+        if m.type == MapTypes.CITY and m.position is not None:
+            write_on_world_string(arr, m.name.upper(), m.position, off, scale)
 
     ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy)
     for i in range(height):
@@ -267,11 +264,11 @@ def world_to_string(width=80, height=70):
 
 
 def get_num_warps_on_side(m, offset):
-    cmpX = clamp(offset[0], -1, 1)
-    cmpY = clamp(offset[1], -1, 1)
+    cmpX = clamp(offset.x, -1, 1)
+    cmpY = clamp(offset.y, -1, 1)
     num = 0
     for w in m.warps:
-        if w.fromX * cmpX >= 0 and w.fromY * cmpY >= 0:
+        if w.fromPos.x * cmpX >= 0 and w.fromPos.y * cmpY >= 0:
             num += 1
     debug("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
     return num
@@ -283,7 +280,8 @@ def maps_can_connect(m1, m2, offset):
         return False
 
     num1 = get_num_warps_on_side(m1, offset)
-    num2 = get_num_warps_on_side(m2, tuple(i * -1 for i in offset))
+    offset2 = Point(-offset.x, -offset.y)
+    num2 = get_num_warps_on_side(m2, offset2)
 
     if num1 > 0 and num2 > 0:
         return True

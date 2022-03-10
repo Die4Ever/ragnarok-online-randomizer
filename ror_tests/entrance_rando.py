@@ -32,14 +32,14 @@ class TestEntranceRando(unittest.TestCase):
         m1 = maps['prontera']
         m2 = maps['aldebaran']
         m3 = maps['payon']
-        self.assertTrue( maps_can_connect(m1, m2, (0, 100)) )
-        self.assertFalse( maps_can_connect(m1, m3, (0, 100)) )
-        self.assertTrue( maps_can_connect(m1, m3, (100, -100)) )
+        self.assertTrue( maps_can_connect(m1, m2, Point(0, 100)) )
+        self.assertFalse( maps_can_connect(m1, m3, Point(0, 100)) )
+        self.assertTrue( maps_can_connect(m1, m3, Point(100, -100)) )
 
     def checkPos(self, map, x, y):
         info('checkPos: '+ repr(maps[map]) + ' vs ' + repr((x, y)))
-        self.assertEqual(maps[map].x, x)
-        self.assertEqual(maps[map].y, y)
+        self.assertEqual(maps[map].position.x, x)
+        self.assertEqual(maps[map].position.y, y)
 
 
 
