@@ -119,7 +119,7 @@ def add_warp(w, type):
         m = maps[w.map]
 
     m.append(w)
-    debug(w)
+    debug('added warp: ' + repr(w))
 
 def new_warp(statement, folder):
     type = MapTypes.UNKNOWN
@@ -140,7 +140,7 @@ def new_warp(statement, folder):
 class MapScript():
     # approximate location? list of the warps in this map? a desired danger rating?
     def __init__(self, file):
-        notice(file)
+        info(file)
         self.file = file
         path = list(Path(file).parts)
         self.name = path[-1]
@@ -161,14 +161,14 @@ class MapScript():
         code = parse_script(self.content)
         # warps from script triggers will be changed along with the normal teleporters to the same map
         # need to identify which maps are only reachable from script triggers
-        #debug(json.dumps(code, indent=1))
+        trace(json.dumps(code, indent=1))
         for t in code:
             if len(t) > 1 and type(t[1]) == str:
                 if t[1] in ['warp', 'warp2']:
                     self.warps.append(t)
-                    notice(t[2])
+                    debug(t[2])
         debug(self.warps)
-        notice(self.name + " warps: " + str(len(self.warps)))
+        info(self.name + " warps: " + str(len(self.warps)))
 
 
 def entrance_rando():
@@ -185,7 +185,7 @@ def entrance_rando():
         if m.type == MapTypes.CITY:
             debug(m)
 
-    notice(world_to_string())
+    debug(world_to_string())
 
     # now mark each area with their closest city, to group them into biomes?
     # shuffle the areas of each biome slightly, mostly just to change the location of the city
@@ -202,7 +202,7 @@ def write_on_world_string(arr, str, pos, off, scale):
     y = int(y)
     s = str[0:4]
     if len(str) > len(s):
-        notice(s+' == '+str)
+        debug(s+' == '+str)
     if len(s) >= 3:
         x -= 1
 
@@ -215,11 +215,9 @@ def write_on_world_string(arr, str, pos, off, scale):
     return (x, y)
 
 
-def world_to_string():
+def world_to_string(width=80, height=70):
     # make a 2D array of characters
     # settings for width and height scaling
-    width = 80
-    height = 70
     tarr = bytearray(width)
     for i in range(width):
         tarr[i] = ord(' ')
@@ -281,6 +279,7 @@ def get_num_warps_on_side(m, offset):
 
 def maps_can_connect(m1, m2, offset):
     if len(m1.warps) < 1 or len(m2.warps) < 1:
+        info('maps_can_connect failed, len(m1.warps): ' + str(len(m1.warps)) + ', len(m2.warps): ' + str(len(m2.warps)) )
         return False
 
     num1 = get_num_warps_on_side(m1, offset)

@@ -5,7 +5,10 @@ class TestEntranceRando(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # lower numbers are SW for these tests
+        # cities first so they get marked as cities
         warp('prontera', 0, 100, 'north', 0, -100)
+        warp('aldebaran', 0, -100, 'north', 0, 100)
+        warp('payon', -100, 100, 'se', 100, -100)
 
         warp('prontera', -100, 100, 'nw', 100, -100)
         warp('prontera', 100, 100, 'ne', -100, -100)
@@ -13,13 +16,12 @@ class TestEntranceRando(unittest.TestCase):
         warp('north', 0, 100, 'aldebaran', 0, -100)
         warp('nw', 100, 100, 'aldebaran', -100, -100)
         warp('ne', -100, 100, 'aldebaran', 100, -100)
-        warp('aldebaran', 0, -100, 'north', 0, 100)
 
         warp('prontera', 100, -100, 'se', -100, 100)
         warp('se', 100, -100, 'payon', -100, 100)
-        warp('payon', -100, 100, 'se', 100, -100)
 
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
+        debug(world_to_string(15, 10))
 
     def test_estimate_positions(self):
         self.checkPos('prontera', 0, 0)
@@ -35,7 +37,7 @@ class TestEntranceRando(unittest.TestCase):
         self.assertTrue( maps_can_connect(m1, m3, (100, -100)) )
 
     def checkPos(self, map, x, y):
-        notice(maps[map])
+        info('checkPos: '+ repr(maps[map]) + ' vs ' + repr((x, y)))
         self.assertEqual(maps[map].x, x)
         self.assertEqual(maps[map].y, y)
 

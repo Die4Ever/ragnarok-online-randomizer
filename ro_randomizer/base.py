@@ -7,6 +7,7 @@ import random
 import time
 from timeit import default_timer as timer
 from enum import Enum, IntEnum
+import json
 
 # shared code for all ro_randomizer modules
 settings = None
@@ -26,7 +27,15 @@ class DebugLevels(IntEnum):
     DEBUG = 3
     TRACE = 4
 
-loglevel = DebugLevels.INFO
+loglevel = DebugLevels.NOTICE
+def set_loglevel(new_loglevel):
+    global loglevel
+    assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
+    loglevel = new_loglevel
+
+def increase_loglevel(new_loglevel):
+    if new_loglevel > loglevel:
+        set_loglevel(new_loglevel)
 
 # text colors
 WARNING = '\033[91m'
