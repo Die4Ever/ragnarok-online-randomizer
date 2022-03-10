@@ -6,7 +6,7 @@ from pathlib import Path
 import random
 import time
 from timeit import default_timer as timer
-from enum import Enum
+from enum import Enum, IntEnum
 
 # shared code for all ro_randomizer modules
 settings = None
@@ -19,32 +19,39 @@ def set_settings(new_settings):
     global settings
     settings = new_settings
 
+class DebugLevels(IntEnum):
+    SILENT = 0
+    NOTICE = 1
+    INFO = 2
+    DEBUG = 3
+    TRACE = 4
 
-loglevel = 'info'
+loglevel = DebugLevels.INFO
 
 # text colors
 WARNING = '\033[91m'
 ENDCOLOR = '\033[0m'
 
 def trace(str):
-    # lower than debug
-    pass
-
+    global loglevel
+    if loglevel >= DebugLevels.TRACE:
+        print(str)
 
 def debug(str):
     global loglevel
-    if loglevel == 'debug':
+    if loglevel >= DebugLevels.DEBUG:
         print(str)
 
 def info(str):
     global loglevel
-    # later we should make this actually separate
-    if loglevel == 'debug':
+    if loglevel >= DebugLevels.INFO:
         print(str)
 
 def notice(str):
     # this might be useful if we do threading? so we can redirect to a file?
-    print(str)
+    global loglevel
+    if loglevel >= DebugLevels.NOTICE:
+        print(str)
 
 def prependException(e, msg):
     if not e.args:
@@ -55,6 +62,9 @@ def appendException(e, msg):
     if not e.args:
         e.args = ("",)
     e.args = (e.args[0] + " \n" + msg,) + e.args[1:]
+
+def printWarning(e):
+    print(WARNING+e+ENDCOLOR)
 
 def printError(e):
     print(WARNING+e+ENDCOLOR)
@@ -92,3 +102,5 @@ def exists_dir(path):
 def rg(name, pattern='[^,\t]+'):
     return r'(?P<'+name+'>'+pattern+')'
 
+def clamp(num, min_value, max_value):
+   return max(min(num, max_value), min_value)

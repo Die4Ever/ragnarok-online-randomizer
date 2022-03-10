@@ -35,7 +35,7 @@ class Warp():
         self.toMap = s.args[3][2]
         self.toX = int(s.args[3][3])
         self.toY = int(s.args[3][4])
-    
+
     def __repr__(self):
         return self.map + " -> " + self.toMap
 
@@ -48,7 +48,7 @@ class Map():
         self.x = None
         self.y = None
         self.conns_in = 0
-    
+
     def append(self, warp):
         self.warps.append(warp)
         if warp.toMap not in maps:
@@ -56,7 +56,7 @@ class Map():
 
     def __repr__(self):
         return repr((self.name, self.type, self.x, self.y, len(self.warps), self.conns_in))
-    
+
     def estimate_position(self, fromWarp, fromMap):
         if fromMap.x is None:
             return
@@ -85,7 +85,7 @@ def estimate_positions(location_anchors):
             if w not in warps:
                 warps[w] = 1
                 maps[w.toMap].estimate_position(w, maps[w.map])
-    
+
     # crawl and build the tree of warps
     new_warps = {}
     while 1:
@@ -99,7 +99,7 @@ def estimate_positions(location_anchors):
             break
         warps.update(new_warps)
         new_warps = {}
-    
+
     for map in maps:
             m = maps[map]
             if m.x is None and m.type == MapTypes.CITY and len(m.warps) > 0:
@@ -117,7 +117,7 @@ def add_warp(w, type):
             m.type = type
     else:
         m = maps[w.map]
-    
+
     m.append(w)
     debug(w)
 
@@ -133,7 +133,7 @@ def new_warp(statement, folder):
         type = MapTypes.OTHER
     else:
         notice("unknown map type: "+folder)
-    
+
     w = Warp(statement)
     add_warp(w, type)
 
@@ -152,7 +152,7 @@ class MapScript():
         for s in self.script.root:
             if s.type in ['warp','warp2']:
                 new_warp(s, self.folder)
-    
+
     def read_file(self):
         self.content = None
         with open(self.file) as f:
@@ -179,12 +179,12 @@ def entrance_rando():
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
                 ms = MapScript(file)
-    
+
     estimate_positions(settings['location_anchors'])
     for m in maps.values():
         if m.type == MapTypes.CITY:
             debug(m)
-    
+
     notice(world_to_string())
 
     # now mark each area with their closest city, to group them into biomes?
@@ -205,7 +205,7 @@ def write_on_world_string(arr, str, pos, off, scale):
         notice(s+' == '+str)
     if len(s) >= 3:
         x -= 1
-    
+
     for c in s:
         if y >= len(arr) or x >= len(arr[y]):
             printError('{}: {}, {}'.format(s, y, x))
@@ -241,7 +241,7 @@ def world_to_string():
                 miny = min(y, miny)
                 maxx = max(x, maxx)
                 maxy = max(y, maxy)
-    
+
     # width-3 because we want to show city names
     scalex = (width-3) / (maxx - minx)
     scaley = (height-1) / (maxy - miny)
@@ -249,20 +249,44 @@ def world_to_string():
     scaley *= -1
     scale = (scalex, scaley)
     off = (-minx, miny)
-    
+
     # first write a character to each spot where an area is, indicating danger rating
     # then write . for each teleporter
     for m in maps.values():
         if m.x is not None:
             for w in m.warps:
                 write_on_world_string(arr, '.', (m.x+w.fromX, m.y+w.fromY), off, scale)
-    
+
     # then write city names (in all caps to differentiate?)
     for m in maps.values():
         if m.type == MapTypes.CITY and m.x is not None:
             write_on_world_string(arr, m.name.upper(), (m.x, m.y), off, scale)
-    
+
     ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy)
     for i in range(height):
         ret += '\n' + arr[i].decode('ascii')
     return ret
+
+
+def get_num_warps_on_side(m, offset):
+    cmpX = clamp(offset[0], -1, 1)
+    cmpY = clamp(offset[1], -1, 1)
+    num = 0
+    for w in m.warps:
+        if w.fromX * cmpX >= 0 and w.fromY * cmpY >= 0:
+            num += 1
+    debug("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
+    return num
+
+
+def maps_can_connect(m1, m2, offset):
+    if len(m1.warps) < 1 or len(m2.warps) < 1:
+        return False
+
+    num1 = get_num_warps_on_side(m1, offset)
+    num2 = get_num_warps_on_side(m2, tuple(i * -1 for i in offset))
+
+    if num1 > 0 and num2 > 0:
+        return True
+
+    return False

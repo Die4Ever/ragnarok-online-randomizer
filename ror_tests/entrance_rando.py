@@ -2,7 +2,8 @@ from ro_randomizer.entrance_rando import *
 import unittest
 
 class TestEntranceRando(unittest.TestCase):
-    def test(self):
+    @classmethod
+    def setUpClass(cls):
         # lower numbers are SW for these tests
         warp('prontera', 0, 100, 'north', 0, -100)
 
@@ -12,16 +13,27 @@ class TestEntranceRando(unittest.TestCase):
         warp('north', 0, 100, 'aldebaran', 0, -100)
         warp('nw', 100, 100, 'aldebaran', -100, -100)
         warp('ne', -100, 100, 'aldebaran', 100, -100)
+        warp('aldebaran', 0, -100, 'north', 0, 100)
 
         warp('prontera', 100, -100, 'se', -100, 100)
         warp('se', 100, -100, 'payon', -100, 100)
+        warp('payon', -100, 100, 'se', 100, -100)
 
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
+
+    def test_estimate_positions(self):
         self.checkPos('prontera', 0, 0)
         self.checkPos('aldebaran', 0, 400)
         self.checkPos('payon', 400, -400)
-    
-    
+
+    def test_maps_can_connect(self):
+        m1 = maps['prontera']
+        m2 = maps['aldebaran']
+        m3 = maps['payon']
+        self.assertTrue( maps_can_connect(m1, m2, (0, 100)) )
+        self.assertFalse( maps_can_connect(m1, m3, (0, 100)) )
+        self.assertTrue( maps_can_connect(m1, m3, (100, -100)) )
+
     def checkPos(self, map, x, y):
         notice(maps[map])
         self.assertEqual(maps[map].x, x)
