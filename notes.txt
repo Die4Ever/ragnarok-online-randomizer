@@ -1,4 +1,4 @@
-first randomize the overworld and dungeouns
+first randomize the overworld and dungeons
 then choose some sub-optimal routes for getting between cities and mark them for low danger areas (weak enemies or non-hostile) so that lowbies can walk between cities
 then mark the other areas as higher danger areas
 next we randomize the mod spawns for these areas according to the danger rating
@@ -8,6 +8,8 @@ seasonal server rotation? all players start in the same city?
 rerandomize the maps layout every week? can I reroll other stats and force the players to respec their characters?
 separate seed for each module?
 maybe that would make seasonal resets obsolete?
+
+https://github.com/rathena/FluxCP
 
 https://4.bp.blogspot.com/-bMpR1CptmOs/TplRug8QO_I/AAAAAAAAACw/pW-dMGcehAs/s1600/World-map.jpg
 https://ratemyserver.net/worldmap.php#
@@ -29,123 +31,128 @@ Message boards: https://github.com/rathena/rathena/blob/master/npc/other/msg_boa
 Guide NPCs probably need to match randomized things: https://github.com/rathena/rathena/tree/master/npc/re/guides
 Global data seems to be stored by NPC ID: https://github.com/rathena/rathena/blob/master/npc/re/other/Global_Functions.txt#L18
 Monster spawns: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L133-L189
-Monster spawners: https://github.com/rathena/rathena/tree/master/npc/re/mobs 
+Monster spawners: https://github.com/rathena/rathena/tree/master/npc/re/mobs
 Warps are also defined in scripts, might be useful for path finding: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L210-L229
 Variable sigils: https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L437-L525
 
+ALBE == ALBERTA
+ALDE == ALDEBARAN
+AYOT == AYOTHAYA
+COMO == COMODO
+EINB == EINBECH
+EINB == EINBROCH
+GEFF == GEFFEN
+HU_F == HU_FILD06
+LIGH == LIGHTHALZEN
+MORO == MOROCC
+MOC_ == MOC_RUINS
+MOSC == MOSCOVIA
+NIF_ == NIF_FILD01
+PAYO == PAYON
+PRON == PRONTERA
+UMBA == UMBALA
+VEIN == VEINS
+YUNO == YUNO_PRE
+IZLU == IZLUDE_IN
+RACH == RACHEL
+minx: -3980.485565185547, miny: -2418.0, maxx: 2126.55859375, maxy: 3628.448251247406
+                                                                                                                .
+                                                                                                              .... . . .
+                                                                                                              ...... . .
+                                                                                           .                  . ... . .
+                                                                               .....                         . ....    .
+                                                                             ...... ...     .     .           ....... ..
+                                                                          .  .... ...                        . .    .
+                                                                      .   . YUNO  ..
+                                                                      ..      .    .                .
+                             .                                              .. ...         .                .
+                                                                            .......    .      .
+                                                                              ... .  . .   .  .           HU_F
+                             .                                           YUNO .
+
+                                                                                  .
+                                                                                  .
+                               .                                               .      .     ..    .
+                               ..                                    . ..      .          .
+                                        .                          ..                      .
+                                                          .                        .  .             .
+                       .                                  .               ...     .
+                                                                   ...   .        .       ..              .
+                             .                 .              ... .....  .  .      ..      .  ..     ..    .
+                                                    .          . .. ..  ..                .      . ...
+             . .. . .                                          . ......           .       ..    .  ..     .
+              ... . .                           ..             . . .  .                         .. .   .     .
+              .. . ..                                          .. . ....                        .        ..                                         .
+              .......     .              .. .              EINB . .           .               .         .
+               . .....                  .. . .      .          EINB.     .                   .        .. . .                                  .... .. .
+                . ... .                .. ........       .                                            .... .                                  ...... .
+               . ....  .                 .........                                                    . .. .                                  AYOT
+                  . . .                . .... ...                 .                             .     . ....                                  .. ..
+               RACH                     ....   .                            .                       ALDE
+               . .                          .   .
+                                      LIGH..   ..
+                .
+                .
+            .                                                                .                       .   .
+    .    .                                                                    .     .
+                                                                            .       .     .
+                                                                             .               .      . ......
+            .                            ... .                                                        ......
+         .....                           .   .  .                                   .    .    .       ......
+          .  ... .                    .  .. .. .                   .      .          ..    .  .       ......
+         .. . .  .                      .   ...  .                 .        ..
+          . .. . .                           . .          .                                .  .     .       ..
+          .   . .                         .  . .  .
+      VEIN                               .  ...                                     .
+                                      . .     ..      .    ..           .        .    . .      .
+                                             .                                     .           .    ...  .. .   .    ..        .
+                                           .  .  .                     .... .                 .    ..       .                 .     .
+                                            ..            .       .   .......              .         .. .. ..                       .
+                                            ..                       . ......       .                .     ..                      ....
+                                                                         ....                         .....                        .. .
+                                           .    ..        ..       GEFF                 .   ..  . . . .........
+                                             .                                .               .      .   ......     .
+                                                                                                     ... ....
+                                                                                                     ....... . ..
+                                                                           .        .        ..      . ....    .. .
+                                                                  ..   .    .                .  .  .   .  .    .. .
+                                   .. .                            . .      .                   .  . PRON .    ....
+                       .          . ....                           . ..             .        ..                ....
+                                .  ....                              . .                              .        ....
+                                   .  .                                                      ..       .      IZLU
+                                                                                    .
+                      .                                             .  .  ..      . .        ...  .    ..   .
+             NIF_.                                                         .      .      . .
+                                                                                                      .
+              .        .                                                            .                 ..                             ..
+             . .. .                                                                 .       ..                  .                  ....
+              ... .                                                                                                             ...  .
+              .. .                                                                                           ...    ..          ......           .
+               .                                                                                                                . .... ..     .
+          UMBA                                                                                                                  .........
+            ..      .                                                                                                             ......
+                                                                                                                                  . ..      .
+           ..     .                                                                                           .   .               .  .      .
+           ...   .   . .                                                                                     .   .  .        PAYO        .    .
+          . ...                                     .   .                                                                                   .
+        .  ...                                        .                                                                   .        .       .
+          . ..  .    . .                             ...                                                                 .        .
+         ... ..                                     . . .                                                                     .  .
+          .            ..  .                        .         .                                                   .             . .    .
+      COMO             .                                 . .. .  .                                                                    .
+                               .                      MOC_        .                                                                           .
+                                                         . .      .                                                                ..
+                                                           ..... .                                                                         ......
+                               .                         MORO...                                                                            ........
+                            .      .             .       .   . ..                                                                           ... .
+                               .        .                 .                                                                                ALBE..
+                                .                                          .
+                                                 .                .                                                                                  .   ...
+                               .                 .                                                                                                   . . ...
+                                            .     ..    ..  ..         .                                                                              . .. . .
+                                                                  .                                                                                MOSC.   .
+                                                                          ..                                                                               .
+                                                 ..       .
+                                                           .
 
 
-PRT == PRT_GLD
-PAY == PAYON
-YUN == YUNO
-ALB == ALBERTA
-AYO == AYOTHAYA
-EIN == EINBROCH
-GEF == GEFFEN
-MOS == MOSCOVIA
-PRO == PRONTERA
-VEI == VEINS
-YUN == YUNO_PRE
-IZL == IZLUDE
-RAC == RACHEL
-minx: -2554.293277537836, miny: -2344.02294921875, maxx: 2126.55859375, maxy: 2082.109304369253
-
-
-
-
-
-                                                                                                            ..
-
-                                                                ...
-                                                                .                                      . ......
-                                                               .  .                                    .... .
-                                                                    .                                  ..  ...
-                                                                .. ..                                  ..
-                                                                  .                                   AYO ..
-
-                                       .
-
-
-
-
-                                                                   .
-                                        .                     .
-
-                                        .     .                 ..
-                                              .     .  .       ......            .
-                                       .                     . ......
-      .                                                        ......
-   ..                                                           .....            .
-     ..   .                                        .    .       .. ..
-  ..  ..                           .          .    . .  .          .
-. . . .... .                .        .         ..
-      ..   .                 .       .          .    .       .
-      . .                              .                .             .
-    .  . .  .       .                                         .    .               .
-    . .. .                                                   ...   .               ..
-   .   ..                                           .              .                     ...
-. .      .                                    .   .      .    .. . .  .  .                          .... . . .
-       ..       .    .           .         .    . .    .     .. .. .  .      .    .                 . .. . . .
-                                   .         .               .. .     . . ..   . .     .  ..        ......
-     .  .  .                     ...                   .     ... .... .          .     .  . .       . ... . .
-                                 .......              .    ......... . ...       .          ..         ..    .
-      ..            .       .    .......                    ... ...   .  . .  .  . .        ..  .   .. ...
-      ..                         . .....      .              .... ..............  .     .......  .  ....... ..
-                               GEF  . .                   PRT .......... ...  .   .. .. . .....  .  ..    .
-                .   .                             .   .  . .... ...YUN.... ....  .  .. . ..         ..
-     .    ..        ... ..                        .   ..      ...... .. ....... ..... ...
-      .             .....  . .           .             .      .. ...........................
-                    ... . ..                               .    ........... ....... .   . .
-                    ... ..                                   . .. ..............  ... .           ..
-                    .    ....                               .  ............ .. . .. .
-                       ..... ..               .        ..    . . ... .........   ..        ..
-                    . .......        .        .        .        ..  .........EIN
-                       ...... .  ..   .                .  . .    YUN...........
-                       .  .  ...      .                   .  .PRO .   .........
-                       .. .......             .        .   .   .  . RAC .... .
-                        . ......              .        .    . ....   .  ......     .
-                               . .                          .   .   . . ..
-                                                 .   . .       . .    .    ..      .     .  .   .
-                                                     . .               IZL    .
-                                 .  ..        .        .           ...        .   .
-                              .             .          ..  ..   ..   ..
-                                            .      ..        .  .  .    .  .               .        .
-                                    ..         .        .               ... .  . .
-                                              .              . ...
-                                             .                  .  .   .   .     ...   .
-                                             ..       .            .    ...      .   .      ....  .
-                                                      .          .  .  ..  ..    .          ...
-                                                    .     .    . .     . .. .    .       .   .
-                                                        .   .   ..       .     ....   .. ... .           .
-                                                              ... .. .....  ...  ... . .......
-                                                              .. .....        . .... .. .. ...  .     .
-                                                              .. . ....       ....       ........
-                                                              .. . . .        .  .        . . ...
-                                                              .    .        . .   . .. .   . .. .
-                                                               .  ...          . .. ... .. .  .     .
-                                                           VEI             .      .       .      .
-                                                                      ..  . ..        PAY .
-
-                                                                            ..    .
-                                                                                           .      .
-                                                                    .             .
-                                                                                      . .       .    .
-
-                                                                           .   ..             .   .
-                                                                                        . .
-                                                                                         .
-                                                                                    .               .
-                                                                                           .
-                                                                                       .         .  ..
-                                                                                       .     .    .   .
-                                                                                        .           .......
-                                                                                           .        ....
-                                                                                            .        .. .
-                                                                                                  ALB....
-                                                                                                   .
-                                                                                                                 ...
-                                                                                                              .  ...
-                                                                                                              . ....
-                                                                                                                . ..
-                                                                                                              .    . .
-                                                                                                           MOS  .

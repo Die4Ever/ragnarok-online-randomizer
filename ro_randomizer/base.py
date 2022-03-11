@@ -27,7 +27,7 @@ class DebugLevels(IntEnum):
     DEBUG = 3
     TRACE = 4
 
-loglevel = DebugLevels.NOTICE
+loglevel = DebugLevels.INFO
 def set_loglevel(new_loglevel):
     global loglevel
     assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
@@ -72,7 +72,7 @@ def appendException(e, msg):
         e.args = ("",)
     e.args = (e.args[0] + " \n" + msg,) + e.args[1:]
 
-def printWarning(e):
+def warning(e):
     print(WARNING+e+ENDCOLOR)
 
 def printError(e):
@@ -121,3 +121,6 @@ class Point():
 
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
+
+    def dist(self, other):
+        return ((self.x - other.x)**2 + (self.y - other.y)**2)**0.5

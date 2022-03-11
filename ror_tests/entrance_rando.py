@@ -28,6 +28,11 @@ class TestEntranceRando(unittest.TestCase):
         self.checkPos('aldebaran', 0, 400)
         self.checkPos('payon', 400, -400)
 
+    def test_set_closest_cities(self):
+        set_closest_cities()
+        self.assertEqual(maps['prontera'].closest_city, 'prontera')
+        self.assertIsNotNone(maps['north'].closest_city)
+
     def test_maps_can_connect(self):
         m1 = maps['prontera']
         m2 = maps['aldebaran']

@@ -12,6 +12,41 @@ from ro_randomizer.script import *
 
 # for cities we'll probably want to remember which warps go to outdoor areas and which go to indoor areas
 
+def entrance_rando():
+    settings = get_settings()
+    seed = settings['seed']
+    printHeader("ENTRANCE RANDO!")
+    for input in settings['inputs']['warps']:
+        for file in insensitive_glob(input+'/*'):
+            if file.endswith('.txt'):
+                ms = MapScript(file)
+
+    maps['moc_ruins'].type = MapTypes.CITY
+    estimate_positions(settings['location_anchors'])
+    for m in maps.values():
+        if m.type == MapTypes.CITY:
+            debug(m)
+
+    debug(world_to_string())
+
+    set_closest_cities()
+    maps['moc_ruins'].type = MapTypes.FIELD
+
+    # TODO:
+    # now mark each area with their closest city, to group them into biomes? how will I keep the deserts of ex-morroc together?
+    #   I can just do a hardcoded maps['morroc'].position = Point(123, 456)
+    #   or I can set the new morroc as a city just for grouping the biomes, and back to a field for setting danger ratings
+    # shuffle the areas of each biome slightly, mostly just to change the location of the city
+    #   or shuffle them completely by detaching everything and attaching everything starting with the city
+    # then connect the biomes to each other randomly
+    # ensure all (or most?) cities can be reached
+    # then mark the desired danger ratings for the lowbie routes for travelling between cities
+    #   these don't need to be optimal routes between cities
+    #   lowbies don't really need to be able to reach every city easily
+    #   maybe only need to test that every starting city has 1 reachable lowbie leveling zone?
+    # mark higher danger ratings away from the lowbie routes and for dungeons
+
+
 class MapTypes(Enum):
     UNKNOWN = 0
     FIELD = 1
@@ -44,6 +79,7 @@ class Map():
         self.type = type
         self.position = None
         self.conns_in = 0
+        self.closest_city = None
 
     def append(self, warp):
         self.warps.append(warp)
@@ -54,6 +90,7 @@ class Map():
         return self.name + "("+self.type.name+") " + repr(self.position) + ", " + str(len(self.warps)) + " warps out, " + str(self.conns_in) + " warps in"
 
     def estimate_position(self, fromWarp, fromMap):
+        self.conns_in += 1
         if fromMap.position is None:
             return
         if fromMap.type == MapTypes.DUNGEON and self.type != MapTypes.DUNGEON:
@@ -67,11 +104,13 @@ class Map():
         else:
             self.position.x = (self.position.x + x) / 2
             self.position.y = (self.position.y + y) / 2
-        self.conns_in += 1
 
 def estimate_positions(location_anchors):
     warps = {}
     for a in location_anchors:
+        if a['map'] not in maps:
+            warning('location_anchor '+a['map']+' not found')
+            continue
         m = maps[a['map']]
         m.position = Point(a['x'], a['y'])
         # init the warps to crawl starting from our anchors
@@ -98,6 +137,26 @@ def estimate_positions(location_anchors):
             m = maps[map]
             if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
                 notice("map missing position:" + map)
+
+
+def set_closest_cities():
+    for m in maps.values():
+        if m.type == MapTypes.CITY:
+            m.closest_city = m.name
+            continue
+        if m.position is None:
+            continue
+        closest_city = None
+        closest_dist = 999999
+        for c in maps.values():
+            if c.type != MapTypes.CITY or c.position is None:
+                continue
+            dist = m.position.dist(c.position)
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_city = c.name
+        if closest_city is not None:
+            m.closest_city = closest_city
 
 
 def add_warp(w, type):
@@ -165,32 +224,6 @@ class MapScript():
         info(self.name + " warps: " + str(len(self.warps)))
 
 
-def entrance_rando():
-    settings = get_settings()
-    seed = settings['seed']
-    printHeader("ENTRANCE RANDO!")
-    for input in settings['inputs']['warps']:
-        for file in insensitive_glob(input+'/*'):
-            if file.endswith('.txt'):
-                ms = MapScript(file)
-
-    estimate_positions(settings['location_anchors'])
-    for m in maps.values():
-        if m.type == MapTypes.CITY:
-            debug(m)
-
-    debug(world_to_string())
-
-    # TODO:
-    # now mark each area with their closest city, to group them into biomes? how will I keep the deserts of ex-morroc together?
-    #   I can just do a hardcoded maps['morroc'].position = ...
-    # shuffle the areas of each biome slightly, mostly just to change the location of the city
-    # or shuffle them completely by detaching everything and attaching everything starting with the city
-    # then connect the biomes to each other randomly
-    # then mark the desired danger ratings for the lowbie routes for travelling between cities
-    # mark higher danger ratings away from the lowbie routes and for dungeons
-
-
 def write_on_world_string(arr, str, pos, off, scale):
     x = (pos.x + off.x) * scale.x
     x = int(x)
@@ -203,7 +236,7 @@ def write_on_world_string(arr, str, pos, off, scale):
         x -= 1
 
     for c in s:
-        if y >= len(arr) or x >= len(arr[y]):
+        if y >= len(arr) or x >= len(arr[y]) or x < 0 or y < 0:
             printError('{}: {}, {}'.format(s, y, x))
         else:
             arr[y][x] = ord(c)
@@ -239,10 +272,8 @@ def world_to_string(width=80, height=70):
     # width-3 because we want to show city names
     scalex = (width-3) / (maxx - minx)
     scaley = (height-1) / (maxy - miny)
-    # y axis is upside-down
-    scaley *= -1
     scale = Point(scalex, scaley)
-    off = Point(-minx, miny)
+    off = Point(-minx, -miny)
 
     # first write a character to each spot where an area is, indicating danger rating
     # then write . for each teleporter
@@ -258,7 +289,8 @@ def world_to_string(width=80, height=70):
             write_on_world_string(arr, m.name.upper(), m.position, off, scale)
 
     ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy)
-    for i in range(height):
+    # y axis is upside-down
+    for i in reversed(range(height)):
         ret += '\n' + arr[i].decode('ascii')
     return ret
 
