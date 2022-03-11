@@ -21,26 +21,21 @@ def entrance_rando():
             if file.endswith('.txt'):
                 ms = MapScript(file)
 
-    maps['moc_ruins'].type = MapTypes.CITY
     estimate_positions(settings['location_anchors'])
     for m in maps.values():
         if m.type == MapTypes.CITY:
             debug(m)
 
+    notice(maps['morocc'])
     debug(world_to_string())
 
+    # now mark each area with their closest city, to group them into biomes?
     set_closest_cities()
-    maps['moc_ruins'].type = MapTypes.FIELD
+
+    shuffle_world(seed)
 
     # TODO:
-    # now mark each area with their closest city, to group them into biomes? how will I keep the deserts of ex-morroc together?
-    #   I can just do a hardcoded maps['morroc'].position = Point(123, 456)
-    #   or I can set the new morroc as a city just for grouping the biomes, and back to a field for setting danger ratings
-    # shuffle the areas of each biome slightly, mostly just to change the location of the city
-    #   or shuffle them completely by detaching everything and attaching everything starting with the city
-    # then connect the biomes to each other randomly
-    # ensure all (or most?) cities can be reached
-    # then mark the desired danger ratings for the lowbie routes for travelling between cities
+    # mark the desired danger ratings for the lowbie routes for travelling between cities
     #   these don't need to be optimal routes between cities
     #   lowbies don't really need to be able to reach every city easily
     #   maybe only need to test that every starting city has 1 reachable lowbie leveling zone?
@@ -319,3 +314,52 @@ def maps_can_connect(m1, m2, offset):
         return True
 
     return False
+
+
+def shuffle_world(seed):
+    i = 0
+    good = False
+    while not good:
+        good = try_shuffle_world(seed, i)
+        i += 1
+        if i > 1000:
+            warning('shuffle_world('+str(seed)+') at '+str(i)+' attempts')
+    debug('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
+    return i
+
+
+def try_shuffle_areas(areas):
+    # shuffle the areas of each biome slightly, mostly just to change the location of the city
+    # or shuffle them completely by detaching everything and attaching everything starting with the city
+    # ensure the areas are reachable
+
+    return True
+
+def shuffle_biome(city, seed):
+    areas = []
+    for m in maps.values():
+        if m.closest_city == city.name:
+            areas.append(m)
+    i = 0
+    good = False
+    while not good:
+        random.seed(seed + i)
+        good = try_shuffle_areas(areas)
+        i += 1
+        if i > 10000:
+            warning('shuffle_biome('+str(seed)+') at '+str(i)+' attempts')
+            return False
+    debug('shuffle_biome('+str(seed)+') took '+str(i)+' attempts')
+    return i
+
+
+def try_shuffle_world(seed, attempt):
+    for c in maps.values():
+        if c.type != MapTypes.CITY:
+            continue
+        if not shuffle_biome(c, seed + attempt * 10000):
+            return False
+
+    # connect the biomes to each other randomly
+    # ensure all (or most?) cities can be reached
+    return True

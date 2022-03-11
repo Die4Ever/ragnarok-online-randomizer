@@ -9,6 +9,7 @@ from timeit import default_timer as timer
 from enum import Enum, IntEnum
 import json
 
+version = '0.01'
 # shared code for all ro_randomizer modules
 settings = None
 

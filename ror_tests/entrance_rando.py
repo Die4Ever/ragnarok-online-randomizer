@@ -41,6 +41,14 @@ class TestEntranceRando(unittest.TestCase):
         self.assertFalse( maps_can_connect(m1, m3, Point(0, 100)) )
         self.assertTrue( maps_can_connect(m1, m3, Point(100, -100)) )
 
+    def test_shuffle_biome(self):
+        self.assertTrue( shuffle_biome(maps['prontera'], 1) < 100 )
+        self.assertTrue( shuffle_biome(maps['prontera'], 999) < 100 )
+
+    def test_shuffle_world(self):
+        self.assertTrue( shuffle_world(1) < 100 )
+        self.assertTrue( shuffle_world(999) < 100 )
+
     def checkPos(self, map, x, y):
         info('checkPos: '+ repr(maps[map]) + ' vs ' + repr((x, y)))
         self.assertEqual(maps[map].position.x, x)

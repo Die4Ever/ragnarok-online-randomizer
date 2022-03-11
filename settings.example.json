@@ -1,7 +1,7 @@
 {
     "inputs": {
         "sql": ["../rathena/sql-files/"],
-        "mobs": ["../rathena/npc/mobs/", ["../rathena/npc/re/mobs/"]],
+        "mobs": ["../rathena/npc/mobs/", "../rathena/npc/re/mobs/"],
         "warps": ["../rathena/npc/warps/", "../rathena/npc/re/warps/"]
     },
     "outputs": {
