@@ -4,6 +4,7 @@ import os.path
 import traceback
 from pathlib import Path
 import random
+import math
 import time
 from timeit import default_timer as timer
 from enum import Enum, IntEnum
@@ -120,8 +121,25 @@ class Point():
         self.x = float(x)
         self.y = float(y)
 
+    def copy(self):
+        return type(self)(self.x, self.y)
+
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
 
     def dist(self, other):
         return ((self.x - other.x)**2 + (self.y - other.y)**2)**0.5
+
+class IntPoint(Point):
+    def __init__(self, x, y):
+        self.x = int(x)
+        self.y = int(y)
+
+
+class Matrix(list):
+    def __init__(self, width, height):
+        list.__init__(self, [[None for y in range(height)] for x in range(width)])
+
+    def ContainsPoint(self, p):
+        return p.x >= 0 and p.y >= 0 and p.x < len(self) and p.y < len(self[0])
+

@@ -56,12 +56,12 @@ class Warp():
     def __init__(self, s):
         self.statement = s
         self.map = s.args[0][0]
-        self.fromPos = Point(int(s.args[0][1]), int(s.args[0][2]))
+        self.fromPos = IntPoint(s.args[0][1], s.args[0][2])
         self.facing = int(s.args[0][3])
         self.warpname = s.args[2][0]
-        self.span = Point(int(s.args[3][0]), int(s.args[3][1]))
+        self.span = IntPoint(s.args[3][0], s.args[3][1])
         self.toMap = s.args[3][2]
-        self.toPos = Point(int(s.args[3][3]), int(s.args[3][4]))
+        self.toPos = IntPoint(s.args[3][3], s.args[3][4])
 
     def __repr__(self):
         return self.map + " -> " + self.toMap
@@ -116,7 +116,7 @@ def estimate_positions(location_anchors):
 
     # crawl and build the tree of warps
     new_warps = {}
-    while 1:
+    while True:
         num_warps = len(warps)
         for f in warps.keys():
             for w in maps[f.toMap].warps:
@@ -291,6 +291,8 @@ def world_to_string(width=80, height=70):
 
 
 def get_num_warps_on_side(m, offset):
+    # TODO: negative coordinates aren't actually used
+    # need a way to determine the center of the map, might have to read every file in the npc folder?
     cmpX = clamp(offset.x, -1, 1)
     cmpY = clamp(offset.y, -1, 1)
     num = 0
@@ -304,53 +306,109 @@ def get_num_warps_on_side(m, offset):
 def maps_can_connect(m1, m2, offset):
     if len(m1.warps) < 1 or len(m2.warps) < 1:
         info('maps_can_connect failed, len(m1.warps): ' + str(len(m1.warps)) + ', len(m2.warps): ' + str(len(m2.warps)) )
-        return False
 
     num1 = get_num_warps_on_side(m1, offset)
     offset2 = Point(-offset.x, -offset.y)
     num2 = get_num_warps_on_side(m2, offset2)
 
     if num1 > 0 and num2 > 0:
-        return True
+        return (True, num1, num2)
 
-    return False
+    return (False, num1, num2)
 
 
 def shuffle_world(seed):
     i = 0
     good = False
+    debug('shuffle_world: ' + str(seed))
     while not good:
         good = try_shuffle_world(seed, i)
         i += 1
-        if i > 1000:
-            warning('shuffle_world('+str(seed)+') at '+str(i)+' attempts')
+        #if i > 100:
+            #warning('shuffle_world('+str(seed)+') at '+str(i)+' attempts')
     debug('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
     return i
 
-
-def try_shuffle_areas(areas):
-    # shuffle the areas of each biome slightly, mostly just to change the location of the city
-    # or shuffle them completely by detaching everything and attaching everything starting with the city
-    # ensure the areas are reachable
-
-    return True
 
 def shuffle_biome(city, seed):
     areas = []
     for m in maps.values():
         if m.closest_city == city.name:
             areas.append(m)
+    #debug( 'shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) )
     i = 0
     good = False
     while not good:
-        random.seed(seed + i)
-        good = try_shuffle_areas(areas)
+        good = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
-        if i > 10000:
-            warning('shuffle_biome('+str(seed)+') at '+str(i)+' attempts')
+        if i > 1000:
+            #warning('shuffle_biome('+repr(city)+', '+str(seed)+') at '+str(i)+' attempts')
             return False
-    debug('shuffle_biome('+str(seed)+') took '+str(i)+' attempts')
+    debug('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
     return i
+
+
+moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
+corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
+def get_map_for_spot(areas, m, spot):
+    # TODO: how to handle corner teleporters? we can check the num1 and num2 returned from maps_can_connect and score them up?
+    for map in areas:
+        good = True
+        for move in moves:
+            tspot = IntPoint(spot.x + move.x, spot.y + move.y)
+            if not m.ContainsPoint(tspot):
+                continue
+
+            other = m[tspot.x][tspot.y]
+            if other is None:
+                continue
+
+            (can_connect, num1, num2) = maps_can_connect(other, map, move)
+            if not can_connect:
+                good = False
+                break
+        if good:
+            return map
+    return None
+
+
+def try_shuffle_areas(rand, areas):
+    # we shuffle the array and put it into a 2D array
+    shuffled_areas = rand.sample(areas, k=len(areas))
+    width = len(shuffled_areas)
+    height = len(shuffled_areas)
+    m = Matrix(width, height)
+
+    center = IntPoint(width/2, height/2)
+    m[center.x][center.y] = shuffled_areas.pop(0)
+
+    debug('try_shuffle_areas '+str(len(shuffled_areas)) )
+    debug(repr(areas))
+    while len(shuffled_areas):
+        # find a spot to place the next piece
+        spot = center.copy()
+        while True:
+            move = rand.choice(moves)
+            spot.x += move.x
+            spot.y += move.y
+            if not m.ContainsPoint(spot):
+                spot = center.copy()
+                continue
+            if m[spot.x][spot.y] is None:
+                break
+
+        # find a map to put in the spot
+        map = get_map_for_spot(shuffled_areas, m, spot)
+        if map is None:
+            debug('try_shuffle_areas failed, '+str(len(shuffled_areas)) )
+            return False
+        shuffled_areas.remove(map)
+        m[spot.x][spot.y] = map
+
+    # TODO:
+    # ensure can navigate from all/most areas to the city?
+    # write the warps
+    return True
 
 
 def try_shuffle_world(seed, attempt):
@@ -360,6 +418,5 @@ def try_shuffle_world(seed, attempt):
         if not shuffle_biome(c, seed + attempt * 10000):
             return False
 
-    # connect the biomes to each other randomly
-    # ensure all (or most?) cities can be reached
+    # ensure all (or most?) cities can be reached from any other city
     return True
