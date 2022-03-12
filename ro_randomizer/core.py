@@ -14,6 +14,13 @@ def randomize(local_settings):
     notice("settings: ")
     notice(repr(settings))
 
+    if loglevel == DebugLevels.TRACE:
+        profile("ro_randomizer.core.do_rando()")
+    else:
+        do_rando()
+
+
+def do_rando():
     entrance_rando()
     #randomize_mobs for mob spawns according to the desired danger level of each map
     #randomize_sql for skills/classes...

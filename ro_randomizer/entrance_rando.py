@@ -322,26 +322,26 @@ def world_to_string(width=80, height=70):
     return ret
 
 
-def get_num_warps_on_side(m, offset):
+def get_warps_on_side(m, offset):
+    # TODO: exclude warps to maps that don't have any warps of their own?
     cmpX = clamp(offset.x, -1, 1)
     cmpY = clamp(offset.y, -1, 1)
     center = IntPoint(m.size.x / 2, m.size.y / 2)
-    num = 0
+    warps = []
     for w in m.warps:
         if (w.fromPos.x - center.x) * cmpX >= 0 and (w.fromPos.y - center.y) * cmpY >= 0:
-            num += 1
-    if num == 0:
-        trace("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
-    return num
+            warps.append(w)
+    if len(warps) == 0:
+        trace("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): 0 / "+str(len(m.warps)))
+    return warps
 
 
 def maps_can_connect(m1, m2, offset):
     if len(m1.warps) < 1 or len(m2.warps) < 1:
         warning('maps_can_connect failed, len('+m1.name+'.warps): ' + str(len(m1.warps)) + ', len('+m2.name+'.warps): ' + str(len(m2.warps)) )
 
-    num1 = get_num_warps_on_side(m1, offset)
-    offset2 = Point(-offset.x, -offset.y)
-    num2 = get_num_warps_on_side(m2, offset2)
+    num1 = len(get_warps_on_side(m1, offset))
+    num2 = len(get_warps_on_side(m2, offset.negative()))
 
     if num1 > 0 and num2 > 0:
         return (True, num1, num2)
@@ -390,7 +390,7 @@ corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
 def get_map_for_spot(areas, m, spot):
     # TODO: how to handle corner teleporters? we can check the num1 and num2 returned from maps_can_connect and score them up?
     for map in areas:
-        good = True
+        good = 0
         for move in moves:
             tspot = IntPoint(spot.x + move.x, spot.y + move.y)
             if not m.ContainsPoint(tspot):
@@ -402,8 +402,9 @@ def get_map_for_spot(areas, m, spot):
 
             (can_connect, num1, num2) = maps_can_connect(other, map, move)
             if not can_connect:
-                good = False
+                good = 0
                 break
+            good += 1
         if good:
             return map
     return None
@@ -447,7 +448,32 @@ def try_shuffle_areas(rand, areas):
 
     # TODO:
     # ensure can navigate from all/most areas to the city?
+    # erase the warps (excluding warps to areas that have no warps of their own)
     # write the warps
+    for map in areas:
+        for w in map.warps:
+            w.toMap = None
+
+    for x in range(width):
+        for y in range(height):
+            map1 = m[x][y]
+            if map1 is None:
+                continue
+            # loop through cardinal moves first and then the corners
+            for move in (moves + corners):
+                spot = IntPoint(x + move.x, y + move.y)
+                if not m.ContainsPoint(spot):
+                    continue
+                map2 = m[spot.x][spot.y]
+                if map2 is None:
+                    continue
+
+                warps1 = get_warps_on_side(map1, move)
+                warps2 = get_warps_on_side(map2, move.negative())
+                # TODO for each warps1, find the nearest available warps2 and link them
+                for w in warps1:
+                    if w.toMap is not None:
+                        continue
     return True
 
 

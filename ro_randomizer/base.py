@@ -10,6 +10,7 @@ from timeit import default_timer as timer
 from enum import Enum, IntEnum
 import json
 import struct
+import cProfile, pstats
 
 version = '0.01'
 # shared code for all ro_randomizer modules
@@ -30,7 +31,7 @@ class DebugLevels(IntEnum):
     DEBUG = 3
     TRACE = 4
 
-loglevel = DebugLevels.DEBUG
+loglevel = DebugLevels.INFO
 def set_loglevel(new_loglevel):
     global loglevel
     assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
@@ -97,6 +98,17 @@ def insensitive_glob(pattern):
     )
 
 
+def profile(function):
+    cProfile.run(function, "{}.profile".format(__file__))
+    s = pstats.Stats("{}.profile".format(__file__))
+    keys = list(s.stats.keys())
+    for f in keys:
+        if 'ragnarok-online-randomizer' not in f[0]:
+            del s.stats[f]
+    s.strip_dirs()
+    s.sort_stats('cumulative').print_stats(15)
+
+
 def exists(file):
     exists = os.path.isfile(file)
     # if exists:
@@ -132,6 +144,9 @@ class Point():
     def minimize(self, p):
         self.x = min(self.x, p.x)
         self.y = min(self.y, p.y)
+
+    def negative(self):
+        return type(self)(-self.x, -self.y)
 
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
