@@ -13,9 +13,20 @@ from ro_randomizer.script import *
 # for cities we'll probably want to remember which warps go to outdoor areas and which go to indoor areas
 
 def entrance_rando():
+    global maps
+    global map_sizes
     settings = get_settings()
     seed = settings['seed']
+    maps = {}
+    map_sizes = {}
+
     printHeader("ENTRANCE RANDO!")
+
+    for input in settings['inputs']['gat']:
+        for file in insensitive_glob(input+'/*'):
+            if file.endswith('.gat'):
+                read_gat_file(file)
+
     for input in settings['inputs']['warps']:
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
@@ -51,6 +62,7 @@ class MapTypes(Enum):
     OTHER = 5
 
 
+map_sizes = {}
 maps = {}
 class Warp():
     def __init__(self, s):
@@ -75,17 +87,24 @@ class Map():
         self.position = None
         self.conns_in = 0
         self.closest_city = None
+        try:
+            self.size = map_sizes[name]
+        except Exception as e:
+            warning(str(e)+' using default size of (64, 64)')
+            self.size = IntPoint(64, 64)
 
     def append(self, warp):
         self.warps.append(warp)
+        self.size.maximize(warp.fromPos)
         if warp.toMap not in maps:
             maps[warp.toMap] = Map(warp.toMap, MapTypes.UNKNOWN)
 
     def __repr__(self):
-        return self.name + "("+self.type.name+") " + repr(self.position) + ", " + str(len(self.warps)) + " warps out, " + str(self.conns_in) + " warps in"
+        return self.name + '('+self.type.name+') ' + repr(self.position) + ', ' + str(self.size) + ', ' + str(len(self.warps)) + ' warps out, ' + str(self.conns_in) + ' warps in'
 
     def estimate_position(self, fromWarp, fromMap):
         self.conns_in += 1
+        self.size.maximize(fromWarp.toPos)
         if fromMap.position is None:
             return
         if fromMap.type == MapTypes.DUNGEON and self.type != MapTypes.DUNGEON:
@@ -219,6 +238,22 @@ class MapScript():
         info(self.name + " warps: " + str(len(self.warps)))
 
 
+def read_gat_file(name):
+    try:
+        with open(name, mode='rb') as file:
+            data = file.read(14)
+            (GRAT, version, width, height) = struct.unpack("<4sHII", data)
+            assert GRAT == b"GRAT"
+        assert width <= 512
+        assert height <= 512
+        path = list(Path(name).parts)
+        mapname = path[-1].replace('.gat', '')
+        size = IntPoint(width, height)
+        map_sizes[mapname] = size
+    except Exception as e:
+        warning(str(e))
+
+
 def write_on_world_string(arr, str, pos, off, scale):
     x = (pos.x + off.x) * scale.x
     x = int(x)
@@ -250,25 +285,22 @@ def world_to_string(width=80, height=70):
         arr.append(tarr.copy())
 
     (minx, miny, maxx, maxy) = (0,0,0,0)
+    minp = Point(0,0)
+    maxp = Point(0,0)
     for m in maps.values():
         if m.position is not None:
-            minx = min(m.position.x, minx)
-            miny = min(m.position.y, miny)
-            maxx = max(m.position.x, maxx)
-            maxy = max(m.position.y, maxy)
+            minp.minimize(m.position)
+            maxp.maximize(m.position)
             for w in m.warps:
-                x = m.position.x + w.fromPos.x
-                y = m.position.y + w.fromPos.y
-                minx = min(x, minx)
-                miny = min(y, miny)
-                maxx = max(x, maxx)
-                maxy = max(y, maxy)
+                p = Point(m.position.x + w.fromPos.x, m.position.y + w.fromPos.y)
+                minp.minimize(p)
+                maxp.maximize(p)
 
     # width-3 because we want to show city names
-    scalex = (width-3) / (maxx - minx)
-    scaley = (height-1) / (maxy - miny)
+    scalex = (width-3) / (maxp.x - minp.x)
+    scaley = (height-1) / (maxp.y - minp.y)
     scale = Point(scalex, scaley)
-    off = Point(-minx, -miny)
+    off = Point(-minp.x, -minp.y)
 
     # first write a character to each spot where an area is, indicating danger rating
     # then write . for each teleporter
@@ -283,7 +315,7 @@ def world_to_string(width=80, height=70):
         if m.type == MapTypes.CITY and m.position is not None:
             write_on_world_string(arr, m.name.upper(), m.position, off, scale)
 
-    ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minx, miny, maxx, maxy)
+    ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minp.x, minp.y, maxp.x, maxp.y)
     # y axis is upside-down
     for i in reversed(range(height)):
         ret += '\n' + arr[i].decode('ascii')
@@ -295,9 +327,10 @@ def get_num_warps_on_side(m, offset):
     # need a way to determine the center of the map, might have to read every file in the npc folder?
     cmpX = clamp(offset.x, -1, 1)
     cmpY = clamp(offset.y, -1, 1)
+    center = IntPoint(m.size.x / 2, m.size.y / 2)
     num = 0
     for w in m.warps:
-        if w.fromPos.x * cmpX >= 0 and w.fromPos.y * cmpY >= 0:
+        if (w.fromPos.x - center.x) * cmpX >= 0 and (w.fromPos.y - center.y) * cmpY >= 0:
             num += 1
     debug("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
     return num

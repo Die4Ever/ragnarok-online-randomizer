@@ -4,23 +4,22 @@ import unittest
 class TestEntranceRando(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # TODO: negative coordinates aren't actually used
         # lower numbers are SW for these tests
         # cities first so they get marked as cities
-        warp('prontera', 0, 100, 'north', 0, -100)
-        warp('aldebaran', 0, -100, 'north', 0, 100)
-        warp('payon', -100, 100, 'se', 100, -100)
+        warp('prontera', 50, 100, 'north', 50, 0)
+        warp('aldebaran', 50, 0, 'north', 50, 100)
+        warp('payon', 0, 100, 'se', 100, 0)
 
-        warp('prontera', -100, 100, 'nw', 100, -100)
-        warp('prontera', 100, 100, 'ne', -100, -100)
+        warp('prontera', 0, 100, 'nw', 100, 0)
+        warp('prontera', 100, 100, 'ne', 0, 0)
 
-        warp('north', 0, -100, 'prontera', 0, 100)
-        warp('north', 0, 100, 'aldebaran', 0, -100)
-        warp('nw', 100, 100, 'aldebaran', -100, -100)
-        warp('ne', -100, 100, 'aldebaran', 100, -100)
+        warp('north', 50, 0, 'prontera', 50, 100)
+        warp('north', 50, 100, 'aldebaran', 50, 0)
+        warp('nw', 100, 100, 'aldebaran', 0, 0)
+        warp('ne', 0, 100, 'aldebaran', 100, 0)
 
-        warp('prontera', 100, -100, 'se', -100, 100)
-        warp('se', 100, -100, 'payon', -100, 100)
+        warp('prontera', 100, 0, 'se', 0, 100)
+        warp('se', 100, 0, 'payon', 0, 100)
 
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
         set_closest_cities()
@@ -32,8 +31,8 @@ class TestEntranceRando(unittest.TestCase):
 
     def test_estimate_positions(self):
         self.checkPos('prontera', 0, 0)
-        self.checkPos('aldebaran', 0, 400)
-        self.checkPos('payon', 400, -400)
+        self.checkPos('aldebaran', 0, 200)
+        self.checkPos('payon', 200, -200)
 
     def test_maps_can_connect(self):
         m1 = maps['prontera']

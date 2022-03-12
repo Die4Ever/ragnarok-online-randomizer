@@ -2,7 +2,8 @@
     "inputs": {
         "sql": ["../rathena/sql-files/"],
         "mobs": ["../rathena/npc/mobs/", "../rathena/npc/re/mobs/"],
-        "warps": ["../rathena/npc/warps/", "../rathena/npc/re/warps/"]
+        "warps": ["../rathena/npc/warps/", "../rathena/npc/re/warps/"],
+        "gat": ["C:/Games/RO data/gat files/"]
     },
     "outputs": {
         "sql": "../rathena/sql-files/",

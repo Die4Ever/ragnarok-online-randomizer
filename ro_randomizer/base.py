@@ -9,6 +9,7 @@ import time
 from timeit import default_timer as timer
 from enum import Enum, IntEnum
 import json
+import struct
 
 version = '0.01'
 # shared code for all ro_randomizer modules
@@ -29,7 +30,7 @@ class DebugLevels(IntEnum):
     DEBUG = 3
     TRACE = 4
 
-loglevel = DebugLevels.INFO
+loglevel = DebugLevels.DEBUG
 def set_loglevel(new_loglevel):
     global loglevel
     assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
@@ -123,6 +124,14 @@ class Point():
 
     def copy(self):
         return type(self)(self.x, self.y)
+
+    def maximize(self, p):
+        self.x = max(self.x, p.x)
+        self.y = max(self.y, p.y)
+
+    def minimize(self, p):
+        self.x = min(self.x, p.x)
+        self.y = min(self.y, p.y)
 
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"

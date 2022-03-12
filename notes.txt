@@ -1,3 +1,6 @@
+extracted sdata.grf and data.grf to get the gat files using https://rathena.org/board/files/file/2766-grf-editor/
+other grf extractors might also work
+
 first randomize the overworld and dungeons
 then choose some sub-optimal routes for getting between cities and mark them for low danger areas (weak enemies or non-hostile) so that lowbies can walk between cities
 then mark the other areas as higher danger areas
