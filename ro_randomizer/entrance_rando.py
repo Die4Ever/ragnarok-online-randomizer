@@ -90,7 +90,7 @@ class Map():
         try:
             self.size = map_sizes[name]
         except Exception as e:
-            warning(str(e)+' using default size of (64, 64)')
+            warning('Map __init__ ' +repr(e)+' using default size of (64, 64)')
             self.size = IntPoint(64, 64)
 
     def append(self, warp):
@@ -323,8 +323,6 @@ def world_to_string(width=80, height=70):
 
 
 def get_num_warps_on_side(m, offset):
-    # TODO: negative coordinates aren't actually used
-    # need a way to determine the center of the map, might have to read every file in the npc folder?
     cmpX = clamp(offset.x, -1, 1)
     cmpY = clamp(offset.y, -1, 1)
     center = IntPoint(m.size.x / 2, m.size.y / 2)
@@ -332,13 +330,14 @@ def get_num_warps_on_side(m, offset):
     for w in m.warps:
         if (w.fromPos.x - center.x) * cmpX >= 0 and (w.fromPos.y - center.y) * cmpY >= 0:
             num += 1
-    debug("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
+    if num == 0:
+        trace("get_num_warps_on_side(" + m.name + ", " + repr(offset) + "): "+str(num)+" / "+str(len(m.warps)))
     return num
 
 
 def maps_can_connect(m1, m2, offset):
     if len(m1.warps) < 1 or len(m2.warps) < 1:
-        info('maps_can_connect failed, len(m1.warps): ' + str(len(m1.warps)) + ', len(m2.warps): ' + str(len(m2.warps)) )
+        warning('maps_can_connect failed, len('+m1.name+'.warps): ' + str(len(m1.warps)) + ', len('+m2.name+'.warps): ' + str(len(m2.warps)) )
 
     num1 = get_num_warps_on_side(m1, offset)
     offset2 = Point(-offset.x, -offset.y)
@@ -353,12 +352,12 @@ def maps_can_connect(m1, m2, offset):
 def shuffle_world(seed):
     i = 0
     good = False
-    debug('shuffle_world: ' + str(seed))
     while not good:
+        printHeader('shuffle_world: ' + str(seed) + ', attempt: ' + str(i) + '...')
         good = try_shuffle_world(seed, i)
         i += 1
-        #if i > 100:
-            #warning('shuffle_world('+str(seed)+') at '+str(i)+' attempts')
+        if i > 1000:
+            raise Exception('shuffle_world('+str(seed)+') failed at '+str(i)+' attempts')
     debug('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
     return i
 
@@ -366,18 +365,23 @@ def shuffle_world(seed):
 def shuffle_biome(city, seed):
     areas = []
     for m in maps.values():
-        if m.closest_city == city.name:
+        # what about areas that have 0 warps out, but 1 or more warps in?
+        if m.closest_city == city.name and len(m.warps) > 0:
             areas.append(m)
-    #debug( 'shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) )
+    info('starting shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) + '...')
     i = 0
     good = False
     while not good:
         good = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
-        if i > 1000:
-            #warning('shuffle_biome('+repr(city)+', '+str(seed)+') at '+str(i)+' attempts')
+        if i > 100000:
+            warning('shuffle_biome('+repr(city)+', '+str(seed)+') failed at '+str(i)+' attempts')
             return False
-    debug('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
+
+    if i > 1000:
+        warning('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
+    else:
+        debug('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
     return i
 
 
@@ -414,11 +418,14 @@ def try_shuffle_areas(rand, areas):
 
     center = IntPoint(width/2, height/2)
     m[center.x][center.y] = shuffled_areas.pop(0)
+    attempts = 0
 
-    debug('try_shuffle_areas '+str(len(shuffled_areas)) )
-    debug(repr(areas))
     while len(shuffled_areas):
         # find a spot to place the next piece
+        attempts += 1
+        if attempts > 1000:
+            warning('try_shuffle_areas failed at '+str(attempts)+' attempts, '+str(len(shuffled_areas)) + '/' + str(len(areas)))
+            return False
         spot = center.copy()
         while True:
             move = rand.choice(moves)
@@ -433,8 +440,8 @@ def try_shuffle_areas(rand, areas):
         # find a map to put in the spot
         map = get_map_for_spot(shuffled_areas, m, spot)
         if map is None:
-            debug('try_shuffle_areas failed, '+str(len(shuffled_areas)) )
-            return False
+            trace('try_shuffle_areas failed, '+str(len(shuffled_areas)) + '/' + str(len(areas)) )
+            continue
         shuffled_areas.remove(map)
         m[spot.x][spot.y] = map
 
