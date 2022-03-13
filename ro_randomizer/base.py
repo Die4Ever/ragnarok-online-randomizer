@@ -17,6 +17,7 @@ version = '0.01'
 settings = None
 map_sizes = {}
 maps = {}
+do_profiling = False
 
 def get_settings():
     global settings

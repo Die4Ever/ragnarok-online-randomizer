@@ -8,7 +8,7 @@ def run_tests():
     unittest.main(verbosity=9, warnings="error")
 
 if __name__ == '__main__':
-    if loglevel == DebugLevels.TRACE:
+    if do_profiling:
         profile("run_tests()")
     else:
         run_tests()

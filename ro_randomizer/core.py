@@ -14,7 +14,7 @@ def randomize(local_settings):
     notice("settings: ")
     notice(repr(settings))
 
-    if loglevel == DebugLevels.TRACE:
+    if do_profiling:
         profile("ro_randomizer.core.do_rando()")
     else:
         do_rando()

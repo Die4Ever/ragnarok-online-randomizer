@@ -36,7 +36,10 @@ def entrance_rando():
 
     estimate_positions(settings['location_anchors'])
     for m in maps.values():
-        if m.type == MapTypes.CITY:
+        m.original_position = m.position
+        if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
+            notice("map missing position:" + m.name + ', ' + repr(m))
+        elif m.type == MapTypes.CITY:
             debug(m)
 
     notice(maps['morocc'])
@@ -46,7 +49,7 @@ def entrance_rando():
     set_closest_cities()
 
     shuffle_world(seed)
-
+    info(world_to_string())
     # TODO:
     # mark the desired danger ratings for the lowbie routes for travelling between cities
     #   these don't need to be optimal routes between cities
@@ -59,12 +62,13 @@ def shuffle_world(seed):
     i = 0
     good = False
     while not good:
+        if i > 1000:
+            raise Exception('shuffle_world('+str(seed)+') failed at '+str(i)+' attempts')
         printHeader('shuffle_world: ' + str(seed) + ', attempt: ' + str(i) + '...')
         good = try_shuffle_world(seed, i)
         i += 1
-        if i > 1000:
-            raise Exception('shuffle_world('+str(seed)+') failed at '+str(i)+' attempts')
-    debug('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
+    info('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
+
     return i
 
 
@@ -72,17 +76,20 @@ def shuffle_biome(city, seed):
     areas = []
     for m in maps.values():
         # what about areas that have 0 warps out, but 1 or more warps in?
-        if m.closest_city == city.name and len(m.warps) > 0:
+        if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None:
             areas.append(m)
     info('starting shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) + '...')
+    if len(areas) == 0:
+        printError('shuffle_biome found 0 areas!')
+        return 1
     i = 0
     good = False
     while not good:
-        good = try_shuffle_areas(random.Random(seed + i), areas)
-        i += 1
         if i > 100000:
             warning('shuffle_biome('+repr(city)+', '+str(seed)+') failed at '+str(i)+' attempts')
-            return False
+            return None
+        good = try_shuffle_areas(random.Random(seed + i), areas)
+        i += 1
 
     if i > 1000:
         warning('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
@@ -111,7 +118,7 @@ def get_map_for_spot(areas, m, spot):
                 good = 0
                 break
             good += 1
-        if good:
+        if good > 0:
             return map
     return None
 
@@ -152,15 +159,15 @@ def try_shuffle_areas(rand, areas):
         shuffled_areas.remove(map)
         m[spot.x][spot.y] = map
 
-    # TODO:
-    # ensure can navigate from all/most areas to the city?
-
     # erase the warps (excluding warps to areas that have no warps of their own?)
     for map in areas:
+        map.position = None
         for w in map.warps:
             if maps[w.map].conns_in > 0:
                 w.toMap = None
 
+    trace('try_shuffle_areas matrix:')
+    trace(m)
     # write the warps
     for x in range(width):
         for y in range(height):
@@ -176,29 +183,40 @@ def try_shuffle_areas(rand, areas):
                 if map2 is None:
                     continue
                 linked = connect_maps(m, map1, map2, move, spot)
+            linked = 0
+            for w in map1.warps:
+                if w.toMap is not None:
+                    linked += 1
+            if linked == 0:
+                return False
+
+    # ensure can navigate from all/most areas to the city
+    estimate_positions([{'map': m[center.x][center.y].name, 'x': 0, 'y': 0}])
+    for map in areas:
+        if map.type == MapTypes.CITY and map.position is None:
+            return False
+        map.position = None
     return True
 
 
 def connect_maps(m, map1, map2, move, spot):
-    warps1 = map1.get_warps_on_side(move)
-    warps2 = map2.get_warps_on_side(move.negative())
+    warps1 = map1.get_warps_on_side(move.negative())
+    warps2 = map2.get_warps_on_side(move)
     offset = move.multiply(map1.size)
     linked = 0
-    # TODO for each warps1, find the nearest available warps2 and link them
+    # for each warps1, find the nearest available warps2 and link them
+    trace('connect_maps('+repr(map1)+', '+repr(map2)+') warps1: '+str(len(warps1))+', warps2: '+str(len(warps2)))
     for w1 in warps1:
         if w1.toMap is not None:
             continue
         closest = None
-        #closest_dist = 999999
-        #closest_warp = None
         for w2 in warps2:
             if w2.toMap is not None:
                 continue
             # adjust w2pos by move or spot, and compare it to w1.fromPos
             w2pos = w2.fromPos.add(offset)
-            #dist = w1.fromPos.dist(w2pos)
             closest = w1.fromPos.closest(w2pos, w2, closest)
-        # link
+        # make the link
         if closest:
             w2 = closest[0]
             w1.toMap = w2.map
@@ -206,15 +224,24 @@ def connect_maps(m, map1, map2, move, spot):
             w2.toMap = w1.map
             w2.toPos = w1.fromPos
             linked += 1
+            trace('connect_maps linked '+repr(w1)+', '+repr(w2))
     return linked
 
 
 def try_shuffle_world(seed, attempt):
     for c in maps.values():
-        if c.type != MapTypes.CITY:
+        if c.type != MapTypes.CITY or c.closest_city != c.name or c.original_position is None:
             continue
-        if not shuffle_biome(c, seed + attempt * 10000):
+        if not shuffle_biome(c, seed + attempt * 1000007):
             return False
 
+    # now connect the biomes together
     # ensure all (or most?) cities can be reached from any other city
+    # probably just estimate_positions and then ensure their position is not None unless their original_position is None
+    for m in maps.values():
+        m.position = None
+    estimate_positions(get_settings()['location_anchors'])
+    #for map in maps.values():
+    #    if map.type == MapTypes.CITY and map.position is None and map.original_position is not None:
+    #        return False
     return True

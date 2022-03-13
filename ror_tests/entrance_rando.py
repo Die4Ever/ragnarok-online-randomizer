@@ -6,24 +6,24 @@ class TestEntranceRando(unittest.TestCase):
     def setUpClass(cls):
         # lower numbers are SW for these tests
         # cities first so they get marked as cities
-        warp('prontera', 50, 100, 'north', 50, 0)
-        warp('aldebaran', 50, 0, 'north', 50, 100)
-        warp('payon', 0, 100, 'se', 100, 0)
+        set_settings({ 'location_anchors': [{'map': 'prontera', 'x': 0, 'y': 0}]})
+        warps('prontera', 50, 100, 'north', 32, 0)
+        warps('aldebaran', 32, 0, 'north', 32, 64)
+        warps('payon', 0, 64, 'se', 64, 0)
 
-        warp('prontera', 0, 100, 'nw', 100, 0)
-        warp('prontera', 100, 100, 'ne', 0, 0)
+        warps('prontera', 0, 100, 'nw', 64, 0)
+        warps('prontera', 100, 100, 'ne', 0, 0)
 
-        warp('north', 50, 0, 'prontera', 50, 100)
-        warp('north', 50, 100, 'aldebaran', 50, 0)
-        warp('nw', 100, 100, 'aldebaran', 0, 0)
-        warp('ne', 0, 100, 'aldebaran', 100, 0)
+        warps('nw', 64, 64, 'aldebaran', 0, 0)
+        warps('ne', 0, 64, 'aldebaran', 64, 0)
 
-        warp('prontera', 100, 0, 'se', 0, 100)
-        warp('se', 100, 0, 'payon', 0, 100)
+        warps('prontera', 100, 0, 'se', 0, 64)
 
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
+        for m in maps.values():
+            m.original_position = m.position
         set_closest_cities()
-        debug(world_to_string(15, 10))
+        debug(world_to_string(16, 12))
 
     def test_closest_cities(self):
         self.assertEqual(maps['prontera'].closest_city, 'prontera')
@@ -31,8 +31,8 @@ class TestEntranceRando(unittest.TestCase):
 
     def test_estimate_positions(self):
         self.checkPos('prontera', 0, 0)
-        self.checkPos('aldebaran', 0, 200)
-        self.checkPos('payon', 200, -200)
+        self.checkPos('aldebaran', 22.5, 164)
+        self.checkPos('payon', 164, -128)
 
     def test_maps_can_connect(self):
         m1 = maps['prontera']
@@ -54,12 +54,31 @@ class TestEntranceRando(unittest.TestCase):
         self.assertEqual(map, maps['aldebaran'])
 
     def test_shuffle_biome(self):
-        self.assertTrue( shuffle_biome(maps['prontera'], 1) < 100 )
-        self.assertTrue( shuffle_biome(maps['prontera'], 999) < 100 )
+        for m in maps.values():
+            m.closest_city = 'prontera'
+            m.position = None
+        self.assertTrue( shuffle_biome(maps['prontera'], 1) < 10 )
+
+        for m in maps.values():
+            m.closest_city = 'prontera'
+            m.position = None
+        self.assertTrue( shuffle_biome(maps['prontera'], 999) < 10 )
 
     def test_shuffle_world(self):
+        anchors = get_settings()['location_anchors']
+        for m in maps.values():
+            m.closest_city = 'prontera'
+            m.position = None
         self.assertTrue( shuffle_world(1) < 100 )
+        estimate_positions(anchors)
+        debug(world_to_string(16, 12))
+
+        for m in maps.values():
+            m.closest_city = 'prontera'
+            m.position = None
         self.assertTrue( shuffle_world(999) < 100 )
+        estimate_positions(anchors)
+        debug(world_to_string(16, 12))
 
     def test_matrix(self):
         m = Matrix(4, 3)
@@ -88,3 +107,8 @@ def warp(map, fromX, fromY, toMap, toX, toY):
     ]
     s = ScriptStatement('', False, 'warp', args, 0, 0)
     return new_warp(s, 'cities')
+
+
+def warps(map, fromX, fromY, toMap, toX, toY):
+    warp(map, fromX, fromY, toMap, toX, toY)
+    warp(toMap, toX, toY, map, fromX, fromY)

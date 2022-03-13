@@ -91,7 +91,7 @@ def estimate_positions(location_anchors):
         m.position = Point(a['x'], a['y'])
         # init the warps to crawl starting from our anchors
         for w in m.warps:
-            if w not in warps:
+            if w not in warps and w.toMap is not None:
                 warps[w] = 1
                 maps[w.toMap].estimate_position(w, maps[w.map])
 
@@ -101,7 +101,7 @@ def estimate_positions(location_anchors):
         num_warps = len(warps)
         for f in warps.keys():
             for w in maps[f.toMap].warps:
-                if w not in warps and w not in new_warps:
+                if w not in warps and w not in new_warps and w.toMap is not None:
                     new_warps[w] = 1
                     maps[w.toMap].estimate_position(w, maps[w.map])
         if len(new_warps) == 0:
@@ -109,10 +109,6 @@ def estimate_positions(location_anchors):
         warps.update(new_warps)
         new_warps = {}
 
-    for map in maps:
-            m = maps[map]
-            if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
-                notice("map missing position:" + map)
 
 
 def set_closest_cities():
@@ -223,7 +219,7 @@ def write_on_world_string(arr, str, pos, off, scale):
     s = str[0:4]
     if len(str) > len(s):
         debug(s+' == '+str)
-    if len(s) >= 3:
+    if len(s) >= 3 and x > 0:
         x -= 1
 
     for c in s:
@@ -269,8 +265,9 @@ def world_to_string(width=80, height=70):
     for m in maps.values():
         if m.position is not None:
             for w in m.warps:
-                pos = m.position.add(w.fromPos)
-                write_on_world_string(arr, '.', pos, off, scale)
+                if w.toMap is not None:
+                    pos = m.position.add(w.fromPos)
+                    write_on_world_string(arr, '.', pos, off, scale)
 
     # then write city names (in all caps to differentiate?)
     for m in maps.values():
