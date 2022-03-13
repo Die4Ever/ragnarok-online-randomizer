@@ -148,16 +148,38 @@ class Point():
     def negative(self):
         return type(self)(-self.x, -self.y)
 
+    def multiply(self, other):
+        return type(self)(self.x * other.x, self.y * other.y)
+
+    def multiply_scalar(self, scalar):
+        return type(self)(self.x * scalar, self.y * scalar)
+
+    def add(self, other):
+        return type(self)(self.x + other.x, self.y + other.y)
+
+    def subtract(self, other):
+        return type(self)(self.x - other.x, self.y - other.y)
+
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
 
     def dist(self, other):
         return ((self.x - other.x)**2 + (self.y - other.y)**2)**0.5
 
+    def closest(self, other_point, object, closest):
+        dist = self.dist(other_point)
+        if closest is None or dist < closest[1]:
+            closest = (object, dist)
+        return closest
+
+
 class IntPoint(Point):
     def __init__(self, x, y):
         self.x = int(x)
         self.y = int(y)
+
+    def toFloatPoint(self):
+        return Point(self.x, self.y)
 
 
 class Matrix(list):

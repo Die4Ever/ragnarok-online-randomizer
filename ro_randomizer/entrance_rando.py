@@ -109,15 +109,14 @@ class Map():
             return
         if fromMap.type == MapTypes.DUNGEON and self.type != MapTypes.DUNGEON:
             return
-        x = fromMap.position.x + fromWarp.fromPos.x
-        x -= fromWarp.toPos.x
-        y = fromMap.position.y + fromWarp.fromPos.y
-        y -= fromWarp.toPos.y
+
+        position = fromMap.position.add(fromWarp.fromPos).subtract(fromWarp.toPos)
+        assert type(position) != IntPoint
+
         if self.position is None:
-            self.position = Point(x, y)
+            self.position = position
         else:
-            self.position.x = (self.position.x + x) / 2
-            self.position.y = (self.position.y + y) / 2
+            self.position = self.position.add(position).multiply_scalar(0.5)
 
 def estimate_positions(location_anchors):
     warps = {}
@@ -160,17 +159,13 @@ def set_closest_cities():
             continue
         if m.position is None:
             continue
-        closest_city = None
-        closest_dist = 999999
+        closest = None
         for c in maps.values():
             if c.type != MapTypes.CITY or c.position is None:
                 continue
-            dist = m.position.dist(c.position)
-            if dist < closest_dist:
-                closest_dist = dist
-                closest_city = c.name
-        if closest_city is not None:
-            m.closest_city = closest_city
+            closest = m.position.closest(c.position, c.name, closest)
+        if closest is not None:
+            m.closest_city = closest[0]
 
 
 def add_warp(w, type):
@@ -255,10 +250,9 @@ def read_gat_file(name):
 
 
 def write_on_world_string(arr, str, pos, off, scale):
-    x = (pos.x + off.x) * scale.x
-    x = int(x)
-    y = (pos.y + off.y) * scale.y
-    y = int(y)
+    t = pos.add(off).multiply(scale)
+    x = int(t.x)
+    y = int(t.y)
     s = str[0:4]
     if len(str) > len(s):
         debug(s+' == '+str)
@@ -292,7 +286,7 @@ def world_to_string(width=80, height=70):
             minp.minimize(m.position)
             maxp.maximize(m.position)
             for w in m.warps:
-                p = Point(m.position.x + w.fromPos.x, m.position.y + w.fromPos.y)
+                p = m.position.add(w.fromPos)
                 minp.minimize(p)
                 maxp.maximize(p)
 
@@ -307,7 +301,7 @@ def world_to_string(width=80, height=70):
     for m in maps.values():
         if m.position is not None:
             for w in m.warps:
-                pos = Point(m.position.x+w.fromPos.x, m.position.y+w.fromPos.y)
+                pos = m.position.add(w.fromPos)
                 write_on_world_string(arr, '.', pos, off, scale)
 
     # then write city names (in all caps to differentiate?)
@@ -392,7 +386,7 @@ def get_map_for_spot(areas, m, spot):
     for map in areas:
         good = 0
         for move in moves:
-            tspot = IntPoint(spot.x + move.x, spot.y + move.y)
+            tspot = spot.add(move)
             if not m.ContainsPoint(tspot):
                 continue
 
@@ -448,12 +442,14 @@ def try_shuffle_areas(rand, areas):
 
     # TODO:
     # ensure can navigate from all/most areas to the city?
-    # erase the warps (excluding warps to areas that have no warps of their own)
-    # write the warps
+
+    # erase the warps (excluding warps to areas that have no warps of their own?)
     for map in areas:
         for w in map.warps:
-            w.toMap = None
+            if maps[w.map].conns_in > 0:
+                w.toMap = None
 
+    # write the warps
     for x in range(width):
         for y in range(height):
             map1 = m[x][y]
@@ -467,14 +463,38 @@ def try_shuffle_areas(rand, areas):
                 map2 = m[spot.x][spot.y]
                 if map2 is None:
                     continue
-
-                warps1 = get_warps_on_side(map1, move)
-                warps2 = get_warps_on_side(map2, move.negative())
-                # TODO for each warps1, find the nearest available warps2 and link them
-                for w in warps1:
-                    if w.toMap is not None:
-                        continue
+                linked = connect_maps(m, map1, map2, move, spot)
     return True
+
+
+def connect_maps(m, map1, map2, move, spot):
+    warps1 = get_warps_on_side(map1, move)
+    warps2 = get_warps_on_side(map2, move.negative())
+    offset = move.multiply(map1.size)
+    linked = 0
+    # TODO for each warps1, find the nearest available warps2 and link them
+    for w1 in warps1:
+        if w1.toMap is not None:
+            continue
+        closest = None
+        #closest_dist = 999999
+        #closest_warp = None
+        for w2 in warps2:
+            if w2.toMap is not None:
+                continue
+            # adjust w2pos by move or spot, and compare it to w1.fromPos
+            w2pos = w2.fromPos.add(offset)
+            #dist = w1.fromPos.dist(w2pos)
+            closest = w1.fromPos.closest(w2pos, w2, closest)
+        # link
+        if closest:
+            w2 = closest[0]
+            w1.toMap = w2.map
+            w1.toPos = w2.fromPos
+            w2.toMap = w1.map
+            w2.toPos = w1.fromPos
+            linked += 1
+    return linked
 
 
 def try_shuffle_world(seed, attempt):

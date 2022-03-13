@@ -47,10 +47,10 @@ class TestEntranceRando(unittest.TestCase):
         m[0][1] = maps['north']
 
         # aldebaran doesn't have teleporters at the north, only at the south
-        map = get_map_for_spot([maps['prontera'], maps['aldebaran']], m, Point(0,2))
+        map = get_map_for_spot([maps['prontera'], maps['aldebaran']], m, IntPoint(0,2))
         self.assertEqual(map, maps['prontera'])
 
-        map = get_map_for_spot([maps['aldebaran']], m, Point(0,0))
+        map = get_map_for_spot([maps['aldebaran']], m, IntPoint(0,0))
         self.assertEqual(map, maps['aldebaran'])
 
     def test_shuffle_biome(self):
