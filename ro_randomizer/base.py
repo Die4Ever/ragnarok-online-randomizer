@@ -15,6 +15,8 @@ import cProfile, pstats
 version = '0.01'
 # shared code for all ro_randomizer modules
 settings = None
+map_sizes = {}
+maps = {}
 
 def get_settings():
     global settings
