@@ -8,9 +8,11 @@ def randomize(local_settings):
         seed = random.randrange(1,999999)
     else:
         seed = int(seed)
+    settings['seed'] = seed
+    set_settings(settings)
+    check_settings_config(settings)
 
     printHeader("randomizing with seed: "+str(seed))
-    settings['seed'] = seed
     notice("settings: ")
     notice(repr(settings))
 
@@ -25,3 +27,16 @@ def do_rando():
     #randomize_mobs for mob spawns according to the desired danger level of each map
     #randomize_sql for skills/classes...
     #randomize_config for leveling rates, item rates...
+
+
+def check_settings_config(settings):
+    assert 'seed' in settings
+    assert 'inputs' in settings
+    assert 'outputs' in settings
+    for type in settings['inputs']:
+        if type not in settings['outputs']:
+            continue
+        for i in settings['inputs'][type]:
+            if i == settings['outputs'][type]:
+                raise Exception("bad config: can't use the same path for input and output of "+type+': '+i)
+

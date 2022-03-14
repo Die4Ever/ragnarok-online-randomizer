@@ -14,7 +14,6 @@ with open('settings.default.json') as f:
     default_settings = json.load(f)
 
 settings = args.copy()
-# TODO: argument for settings file
 try:
     with open(args['settings_file']) as f:
         settings = json.load(f)

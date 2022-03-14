@@ -6,8 +6,8 @@
         "gat": ["C:/Games/RO data/gat files/"]
     },
     "outputs": {
-        "sql": "../rathena/sql-files/",
-        "mobs": "../rathena/npc/mobs/",
-        "warps": "../rathena/npc/warps/"
+        "sql": "out/sql-files/",
+        "mobs": "out/npc/mobs/",
+        "warps": "out/npc/warps/"
     }
 }

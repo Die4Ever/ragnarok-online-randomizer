@@ -182,6 +182,10 @@ def try_shuffle_areas(rand, areas):
                 map2 = m[spot.x][spot.y]
                 if map2 is None:
                     continue
+                # If I want to make it more lenient, I can make it do a single connection for each pair of maps before going back and doing the rest
+                # so call connect_maps_single (or a parameter of 1 for max connections)
+                # then do the loop again with regular connect_maps to fill in the rest
+                # maybe the lists of warps should be shuffled too?
                 linked = connect_maps(m, map1, map2, move, spot)
             linked = 0
             for w in map1.warps:

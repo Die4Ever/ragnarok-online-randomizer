@@ -51,7 +51,7 @@ class Map():
         return self.name + '('+self.type.name+') ' + repr(self.position) + ', ' + str(self.size) + ', ' + str(len(self.warps)) + ' warps out, ' + str(self.conns_in) + ' warps in'
 
     def get_warps_on_side(self, offset):
-        # TODO: exclude warps to maps that don't have any warps of their own?
+        # TODO: exclude warps to maps that don't have any warps of their own? but how will that work when I've set toMap to None?
         cmpX = clamp(offset.x, -1, 1)
         cmpY = clamp(offset.y, -1, 1)
         center = IntPoint(self.size.x / 2, self.size.y / 2)
