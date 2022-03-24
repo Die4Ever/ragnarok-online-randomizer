@@ -31,6 +31,8 @@ class Map():
         self.warps = []
         self.name = name
         self.type = type
+        if name.endswith('_in'):
+            self.type = MapTypes.INDOORS
         self.position = None
         self.conns_in = 0
         self.closest_city = None
@@ -133,13 +135,10 @@ def add_warp(w, type):
     m = None
     if w.map not in maps:
         m = maps[w.map] = Map(w.map, type)
-    elif maps[w.map].type != type and type != MapTypes.OTHER:
-        m = maps[w.map]
-        oldtype = m
-        if m.type == MapTypes.OTHER:
-            m.type = type
     else:
         m = maps[w.map]
+        if m.type == MapTypes.OTHER and type != MapTypes.OTHER:
+            m.type = type
 
     m.append(w)
     debug('added warp: ' + repr(w))

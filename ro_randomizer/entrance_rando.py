@@ -100,16 +100,16 @@ def shuffle_biome(city, seed):
 
 moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
 corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
-def get_map_for_spot(areas, m, spot):
+def get_map_for_spot(areas, grid, spot):
     # TODO: how to handle corner teleporters? we can check the num1 and num2 returned from maps_can_connect and score them up?
     for map in areas:
         good = 0
         for move in moves:
             tspot = spot.add(move)
-            if not m.ContainsPoint(tspot):
+            if not grid.ContainsPoint(tspot):
                 continue
 
-            other = m[tspot.x][tspot.y]
+            other = grid[tspot.x][tspot.y]
             if other is None:
                 continue
 
@@ -128,10 +128,10 @@ def try_shuffle_areas(rand, areas):
     shuffled_areas = rand.sample(areas, k=len(areas))
     width = len(shuffled_areas)
     height = len(shuffled_areas)
-    m = Matrix(width, height)
+    grid = Matrix(width, height)
 
     center = IntPoint(width/2, height/2)
-    m[center.x][center.y] = shuffled_areas.pop(0)
+    grid[center.x][center.y] = shuffled_areas.pop(0)
     attempts = 0
 
     while len(shuffled_areas):
@@ -145,48 +145,50 @@ def try_shuffle_areas(rand, areas):
             move = rand.choice(moves)
             spot.x += move.x
             spot.y += move.y
-            if not m.ContainsPoint(spot):
+            if not grid.ContainsPoint(spot):
                 spot = center.copy()
                 continue
-            if m[spot.x][spot.y] is None:
+            if grid[spot.x][spot.y] is None:
                 break
 
         # find a map to put in the spot
-        map = get_map_for_spot(shuffled_areas, m, spot)
+        map = get_map_for_spot(shuffled_areas, grid, spot)
         if map is None:
             trace('try_shuffle_areas failed, '+str(len(shuffled_areas)) + '/' + str(len(areas)) )
             continue
         shuffled_areas.remove(map)
-        m[spot.x][spot.y] = map
+        grid[spot.x][spot.y] = map
 
     # erase the warps (excluding warps to areas that have no warps of their own?)
     for map in areas:
         map.position = None
-        for w in map.warps:
-            if maps[w.map].conns_in > 0:
-                w.toMap = None
+        if map.type != MapTypes.INDOORS and map.conns_in > 0:
+            for w in map.warps:
+                to = maps.get(w.toMap)
+                if to and to.type != MapTypes.INDOORS:
+                    w.toMap = None
 
     trace('try_shuffle_areas matrix:')
-    trace(m)
+    trace(grid)
     # write the warps
     for x in range(width):
         for y in range(height):
-            map1 = m[x][y]
+            map1 = grid[x][y]
             if map1 is None:
                 continue
             # loop through cardinal moves first and then the corners
             for move in (moves + corners):
                 spot = IntPoint(x + move.x, y + move.y)
-                if not m.ContainsPoint(spot):
+                if not grid.ContainsPoint(spot):
                     continue
-                map2 = m[spot.x][spot.y]
+                map2 = grid[spot.x][spot.y]
                 if map2 is None:
                     continue
                 # If I want to make it more lenient, I can make it do a single connection for each pair of maps before going back and doing the rest
                 # so call connect_maps_single (or a parameter of 1 for max connections)
                 # then do the loop again with regular connect_maps to fill in the rest
                 # maybe the lists of warps should be shuffled too?
-                linked = connect_maps(m, map1, map2, move, spot)
+                linked = connect_maps(grid, map1, map2, move, spot)
             linked = 0
             for w in map1.warps:
                 if w.toMap is not None:
@@ -195,7 +197,7 @@ def try_shuffle_areas(rand, areas):
                 return False
 
     # ensure can navigate from all/most areas to the city
-    estimate_positions([{'map': m[center.x][center.y].name, 'x': 0, 'y': 0}])
+    estimate_positions([{'map': grid[center.x][center.y].name, 'x': 0, 'y': 0}])
     for map in areas:
         if map.type == MapTypes.CITY and map.position is None:
             return False
