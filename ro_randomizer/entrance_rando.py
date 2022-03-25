@@ -74,11 +74,13 @@ def shuffle_world(seed):
 
 
 def shuffle_biome(city, seed):
+    # build the areas that make up this biome
     areas = []
     for m in maps.values():
         # what about areas that have 0 warps out, but 1 or more warps in?
         if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None and m.type != MapTypes.INDOORS:
             areas.append(m)
+
     info('starting shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) + '...')
     if len(areas) == 0:
         printError('shuffle_biome found 0 areas!')
@@ -92,6 +94,7 @@ def shuffle_biome(city, seed):
         grid = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
 
+    # success!
     if i > 1000:
         warning('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
     else:
@@ -108,7 +111,7 @@ def try_shuffle_areas(rand, areas):
     trace('try_shuffle_areas matrix:')
     trace(grid.grid)
 
-    if not grid.finalize_connections() and len(areas) > 1:
+    if not grid.finalize_connections():
         return None
 
     # ensure can navigate from all/most areas to the city
@@ -122,7 +125,25 @@ def try_shuffle_areas(rand, areas):
 
 
 def try_connect_world(rand, biomes):
-    return (True, 0)
+    grid = ro_randomizer.world_map_grids.WorldGrid(rand, biomes)
+    if not grid.fill(rand):
+        return None
+
+    trace('try_connect_world matrix:')
+    trace(grid.grid)
+
+    if not grid.finalize_connections():
+        return None
+
+    # ensure can navigate from all/most areas to the city
+    estimate_positions(get_settings()['location_anchors'])
+    # for b in biomes:
+    #     if map.type == MapTypes.CITY and map.position is None:
+    #         grid.clear_connections()
+    #         return None
+    #     map.position = None
+
+    return grid
 
 
 def try_shuffle_world(seed, attempt):
@@ -139,20 +160,11 @@ def try_shuffle_world(seed, attempt):
     info('connecting world together, biomes: '+str(len(biomes)))
     world = None
     for i in range(1000):
-        (world, attempts) = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
+        world = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
         if world:
             break
 
     if not world:
         printError('failed to connect world')
         return False
-
-    # ensure all (or most?) cities can be reached from any other city
-    # probably just estimate_positions and then ensure their position is not None unless their original_position is None
-    for m in maps.values():
-        m.position = None
-    estimate_positions(get_settings()['location_anchors'])
-    #for map in maps.values():
-    #    if map.type == MapTypes.CITY and map.position is None and map.original_position is not None:
-    #        return False
     return True

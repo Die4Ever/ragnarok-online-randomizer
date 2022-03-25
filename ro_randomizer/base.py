@@ -274,6 +274,8 @@ class ShuffledGrid:
     def finalize_connections(self):
         self.clear_connections()
         size = len(self.grid)
+        if size == 1:
+            return True
         linked = 0
         for x in range(size):
             for y in range(size):

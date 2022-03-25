@@ -54,3 +54,33 @@ class MapsGrid(ShuffledGrid):
                 trace('connect_items linked '+repr(w1)+', '+repr(w2))
         return linked
 
+
+class WorldGrid(ShuffledGrid):
+    def __init__(self, rand, items):
+        ShuffledGrid.__init__(self, rand, items)
+        # build a list of warps that we control
+        # these are the ones we clear in clear_connections
+        self.warps = []
+        for biome in items:
+            for map in biome.items:
+                map.position = None
+                if map.type != MapTypes.INDOORS and map.conns_in > 0:
+                    for w in map.warps:
+                        if w.toMap is None:
+                            self.warps.append(w)
+
+
+    def items_can_connect(self, m1, m2, move):
+        return True
+
+    def clear_connections(self):
+        for biome in self.items:
+            for map in biome.items:
+                map.position = None
+        for w in self.warps:
+            w.toMap = None
+        pass
+
+    def connect_items(self, map1, map2, move, spot):
+        return 1
+
