@@ -34,35 +34,33 @@ class TestEntranceRando(unittest.TestCase):
         self.checkPos('aldebaran', 22.5, 164)
         self.checkPos('payon', 164, -128)
 
-    def test_maps_can_connect(self):
+    def test_MapsGrid(self):
         m1 = maps['prontera']
         m2 = maps['aldebaran']
         m3 = maps['payon']
-        self.assertTrue( maps_can_connect(m1, m2, Point(0, 100))[0] )
-        self.assertFalse( maps_can_connect(m1, m3, Point(0, 100))[0] )
-        self.assertTrue( maps_can_connect(m1, m3, Point(100, -100))[0] )
 
-    def test_get_map_for_spot(self):
-        m = Matrix(3,3)
-        m[0][1] = maps['north']
+        grid = ro_randomizer.world_map_grids.MapsGrid(random.Random(1), [m1, m2, m3])
+        self.assertTrue( grid.items_can_connect(m1, m2, Point(0, -100)) )
+        self.assertFalse( grid.items_can_connect(m1, m3, Point(0, -100)) )
+        self.assertTrue( grid.items_can_connect(m1, m3, Point(-100, 100)) )
 
-        # aldebaran doesn't have teleporters at the north, only at the south
-        map = get_map_for_spot([maps['prontera'], maps['aldebaran']], m, IntPoint(0,2))
-        self.assertEqual(map, maps['prontera'])
-
-        map = get_map_for_spot([maps['aldebaran']], m, IntPoint(0,0))
-        self.assertEqual(map, maps['aldebaran'])
+        m = grid.grid[1][1]
+        self.assertEqual(m, maps['prontera'])
+        m = grid.put_random_item_in_spot(IntPoint(1, 2))
+        self.assertEqual(m, maps['payon'])
+        m = grid.put_random_item_in_spot(IntPoint(1, 0))
+        self.assertEqual(m, maps['aldebaran'])
 
     def test_shuffle_biome(self):
         for m in maps.values():
             m.closest_city = 'prontera'
             m.position = None
-        self.assertTrue( shuffle_biome(maps['prontera'], 1) < 10 )
+        self.assertTrue( shuffle_biome(maps['prontera'], 1)[1] < 10 )
 
         for m in maps.values():
             m.closest_city = 'prontera'
             m.position = None
-        self.assertTrue( shuffle_biome(maps['prontera'], 999) < 10 )
+        self.assertTrue( shuffle_biome(maps['prontera'], 999)[1] < 10 )
 
     def test_shuffle_world(self):
         anchors = get_settings()['location_anchors']

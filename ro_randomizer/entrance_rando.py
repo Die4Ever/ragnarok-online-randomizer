@@ -2,6 +2,7 @@ import ro_randomizer.base
 from ro_randomizer.base import *
 from ro_randomizer.script import *
 from ro_randomizer.map import *
+import ro_randomizer.world_map_grids
 
 # https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L210-L229
 # <from mapname>,<fromX>,<fromY>,<facing>%TAB%warp%TAB%<warp name>%TAB%<spanx>,<spany>,<to mapname>,<toX>,<toY>
@@ -76,172 +77,76 @@ def shuffle_biome(city, seed):
     areas = []
     for m in maps.values():
         # what about areas that have 0 warps out, but 1 or more warps in?
-        if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None:
+        if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None and m.type != MapTypes.INDOORS:
             areas.append(m)
     info('starting shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) + '...')
     if len(areas) == 0:
         printError('shuffle_biome found 0 areas!')
-        return 1
+        return (None, 0)
     i = 0
-    good = False
-    while not good:
+    grid = None
+    while not grid:
         if i > 100000:
             warning('shuffle_biome('+repr(city)+', '+str(seed)+') failed at '+str(i)+' attempts')
-            return None
-        good = try_shuffle_areas(random.Random(seed + i), areas)
+            return (None, i)
+        grid = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
 
     if i > 1000:
         warning('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
     else:
         debug('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
-    return i
-
-
-moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
-corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
-def get_map_for_spot(areas, grid, spot):
-    # TODO: how to handle corner teleporters? we can check the num1 and num2 returned from maps_can_connect and score them up?
-    for map in areas:
-        good = 0
-        for move in moves:
-            tspot = spot.add(move)
-            if not grid.ContainsPoint(tspot):
-                continue
-
-            other = grid[tspot.x][tspot.y]
-            if other is None:
-                continue
-
-            (can_connect, num1, num2) = maps_can_connect(other, map, move)
-            if not can_connect:
-                good = 0
-                break
-            good += 1
-        if good > 0:
-            return map
-    return None
+    return (grid, i)
 
 
 def try_shuffle_areas(rand, areas):
     # we shuffle the array and put it into a 2D array
-    shuffled_areas = rand.sample(areas, k=len(areas))
-    width = len(shuffled_areas)
-    height = len(shuffled_areas)
-    grid = Matrix(width, height)
-
-    center = IntPoint(width/2, height/2)
-    grid[center.x][center.y] = shuffled_areas.pop(0)
-    attempts = 0
-
-    while len(shuffled_areas):
-        # find a spot to place the next piece
-        attempts += 1
-        if attempts > 1000:
-            warning('try_shuffle_areas failed at '+str(attempts)+' attempts, '+str(len(shuffled_areas)) + '/' + str(len(areas)))
-            return False
-        spot = center.copy()
-        while True:
-            move = rand.choice(moves)
-            spot.x += move.x
-            spot.y += move.y
-            if not grid.ContainsPoint(spot):
-                spot = center.copy()
-                continue
-            if grid[spot.x][spot.y] is None:
-                break
-
-        # find a map to put in the spot
-        map = get_map_for_spot(shuffled_areas, grid, spot)
-        if map is None:
-            trace('try_shuffle_areas failed, '+str(len(shuffled_areas)) + '/' + str(len(areas)) )
-            continue
-        shuffled_areas.remove(map)
-        grid[spot.x][spot.y] = map
-
-    # erase the warps (excluding warps to areas that have no warps of their own?)
-    for map in areas:
-        map.position = None
-        if map.type != MapTypes.INDOORS and map.conns_in > 0:
-            for w in map.warps:
-                to = maps.get(w.toMap)
-                if to and to.type != MapTypes.INDOORS:
-                    w.toMap = None
+    grid = ro_randomizer.world_map_grids.MapsGrid(rand, areas)
+    if not grid.fill(rand):
+        return None
 
     trace('try_shuffle_areas matrix:')
-    trace(grid)
-    # write the warps
-    for x in range(width):
-        for y in range(height):
-            map1 = grid[x][y]
-            if map1 is None:
-                continue
-            # loop through cardinal moves first and then the corners
-            for move in (moves + corners):
-                spot = IntPoint(x + move.x, y + move.y)
-                if not grid.ContainsPoint(spot):
-                    continue
-                map2 = grid[spot.x][spot.y]
-                if map2 is None:
-                    continue
-                # If I want to make it more lenient, I can make it do a single connection for each pair of maps before going back and doing the rest
-                # so call connect_maps_single (or a parameter of 1 for max connections)
-                # then do the loop again with regular connect_maps to fill in the rest
-                # maybe the lists of warps should be shuffled too?
-                linked = connect_maps(grid, map1, map2, move, spot)
-            linked = 0
-            for w in map1.warps:
-                if w.toMap is not None:
-                    linked += 1
-            if linked == 0:
-                return False
+    trace(grid.grid)
+
+    if not grid.finalize_connections() and len(areas) > 1:
+        return None
 
     # ensure can navigate from all/most areas to the city
-    estimate_positions([{'map': grid[center.x][center.y].name, 'x': 0, 'y': 0}])
+    estimate_positions([{'map': grid.grid[grid.center.x][grid.center.y].name, 'x': 0, 'y': 0}])
     for map in areas:
         if map.type == MapTypes.CITY and map.position is None:
-            return False
+            return None
         map.position = None
-    return True
+
+    return grid
 
 
-def connect_maps(m, map1, map2, move, spot):
-    warps1 = map1.get_warps_on_side(move.negative())
-    warps2 = map2.get_warps_on_side(move)
-    offset = move.multiply(map1.size)
-    linked = 0
-    # for each warps1, find the nearest available warps2 and link them
-    trace('connect_maps('+repr(map1)+', '+repr(map2)+') warps1: '+str(len(warps1))+', warps2: '+str(len(warps2)))
-    for w1 in warps1:
-        if w1.toMap is not None:
-            continue
-        closest = None
-        for w2 in warps2:
-            if w2.toMap is not None:
-                continue
-            # adjust w2pos by move or spot, and compare it to w1.fromPos
-            w2pos = w2.fromPos.add(offset)
-            closest = w1.fromPos.closest(w2pos, w2, closest)
-        # make the link
-        if closest:
-            w2 = closest[0]
-            w1.toMap = w2.map
-            w1.toPos = w2.fromPos
-            w2.toMap = w1.map
-            w2.toPos = w1.fromPos
-            linked += 1
-            trace('connect_maps linked '+repr(w1)+', '+repr(w2))
-    return linked
+def try_connect_world(rand, biomes):
+    return (True, 0)
 
 
 def try_shuffle_world(seed, attempt):
+    biomes = []
     for c in maps.values():
         if c.type != MapTypes.CITY or c.closest_city != c.name or c.original_position is None:
             continue
-        if not shuffle_biome(c, seed + attempt * 1000007):
+        (biome, attempts) = shuffle_biome(c, seed + attempt * 1000007)
+        if not biome:
             return False
+        biomes.append(biome)
 
     # now connect the biomes together
+    info('connecting world together, biomes: '+str(len(biomes)))
+    world = None
+    for i in range(1000):
+        (world, attempts) = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
+        if world:
+            break
+
+    if not world:
+        printError('failed to connect world')
+        return False
+
     # ensure all (or most?) cities can be reached from any other city
     # probably just estimate_positions and then ensure their position is not None unless their original_position is None
     for m in maps.values():

@@ -278,17 +278,3 @@ def world_to_string(width=80, height=70):
     for i in reversed(range(height)):
         ret += '\n' + arr[i].decode('ascii')
     return ret
-
-
-def maps_can_connect(m1, m2, offset):
-    if len(m1.warps) < 1 or len(m2.warps) < 1:
-        warning('maps_can_connect failed, len('+m1.name+'.warps): ' + str(len(m1.warps)) + ', len('+m2.name+'.warps): ' + str(len(m2.warps)) )
-
-    num1 = len(m1.get_warps_on_side(offset))
-    num2 = len(m2.get_warps_on_side(offset.negative()))
-
-    if num1 > 0 and num2 > 0:
-        return (True, num1, num2)
-
-    return (False, num1, num2)
-

@@ -192,3 +192,106 @@ class Matrix(list):
     def ContainsPoint(self, p):
         return p.x >= 0 and p.y >= 0 and p.x < len(self) and p.y < len(self[0])
 
+
+moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
+corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
+
+
+class ShuffledGrid:
+    def __init__(self, rand, items):
+        # we shuffle the array and put it into a 2D array, pops the first item from shuffled_items
+        self.items = items
+        self.shuffled_items = rand.sample(items, k=len(items))
+        width = len(self.shuffled_items)
+        height = len(self.shuffled_items)
+        self.grid = Matrix(width, height)
+
+        self.center = IntPoint(width/2, height/2)
+        self.grid[self.center.x][self.center.y] = self.shuffled_items.pop(0)
+        attempts = 0
+
+    def items_can_connect(self, item, other, move):
+        # base class placeholder
+        return True
+
+    def clear_connections(self):
+        # base class placeholder
+        pass
+
+    def connect_items(self, item1, item2, move, spot):
+        # base class placeholder
+        return 1
+
+    def get_empty_spot(self, rand):
+        spot = self.center.copy()
+        while True:
+            move = rand.choice(moves)
+            spot.x += move.x
+            spot.y += move.y
+            if not self.grid.ContainsPoint(spot):
+                spot = self.center.copy()
+                continue
+            if self.grid[spot.x][spot.y] is None:
+                return spot
+
+    def put_random_item_in_spot(self, spot):
+        for item in self.shuffled_items:
+            good = 0
+            for move in moves:
+                tspot = spot.add(move)
+                if not self.grid.ContainsPoint(tspot):
+                    continue
+
+                other = self.grid[tspot.x][tspot.y]
+                if other is None:
+                    continue
+
+                can_connect = self.items_can_connect(item, other, move)
+                if not can_connect:
+                    good = 0
+                    break
+                good += 1
+            if good > 0:
+                self.shuffled_items.remove(item)
+                self.grid[spot.x][spot.y] = item
+                return item
+        trace(type(self).__name__ + '.put_random_item_in_spot failed, '+str(len(self.shuffled_items)) + '/' + str(len(self.grid)) )
+        return None
+
+    def fill(self, rand):
+        attempts = 0
+        while len(self.shuffled_items):
+            # find a spot to place the next piece
+            attempts += 1
+            if attempts > 1000:
+                warning(type(self).__name__ + '.fill failed at '+str(attempts)+' attempts, '+str(len(self.shuffled_items)) + '/' + str(len(self.grid)))
+                return None
+            spot = self.get_empty_spot(rand)
+            # find an item to put in the spot
+            self.put_random_item_in_spot(spot)
+        return True
+
+    def finalize_connections(self):
+        self.clear_connections()
+        size = len(self.grid)
+        linked = 0
+        for x in range(size):
+            for y in range(size):
+                item1 = self.grid[x][y]
+                if item1 is None:
+                    continue
+                # loop through cardinal moves first and then the corners
+                for move in (moves + corners):
+                    spot = IntPoint(x + move.x, y + move.y)
+                    if not self.grid.ContainsPoint(spot):
+                        continue
+                    item2 = self.grid[spot.x][spot.y]
+                    if item2 is None:
+                        continue
+                    # If I want to make it more lenient, I can make it do a single connection for each pair of maps before going back and doing the rest
+                    # so call connect_items_single (or a parameter of 1 for max connections)
+                    # then do the loop again with regular connect_maps to fill in the rest
+                    # maybe the lists of warps should be shuffled too?
+                    linked += self.connect_items(item1, item2, move, spot)
+        return linked > 0
+
