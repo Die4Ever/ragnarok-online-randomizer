@@ -148,8 +148,18 @@ class Point():
         self.x = min(self.x, p.x)
         self.y = min(self.y, p.y)
 
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    @classmethod
+    def from_point(cls, other):
+        return cls(other.x, other.y)
+
     def negative(self):
         return type(self)(-self.x, -self.y)
+
+    def flip(self):
+        return type(self)(self.y, self.x)
 
     def multiply(self, other):
         return type(self)(self.x * other.x, self.y * other.y)
@@ -181,9 +191,6 @@ class IntPoint(Point):
         self.x = int(x)
         self.y = int(y)
 
-    def toFloatPoint(self):
-        return Point(self.x, self.y)
-
 
 class Matrix(list):
     def __init__(self, width, height):
@@ -202,8 +209,13 @@ class ShuffledGrid:
         # we shuffle the array and put it into a 2D array, pops the first item from shuffled_items
         self.items = items
         self.shuffled_items = rand.sample(items, k=len(items))
-        width = len(self.shuffled_items)
-        height = len(self.shuffled_items)
+
+        size = len(self.shuffled_items)
+        # ensure we have a proper center point
+        if size % 2 == 0:
+            size += 1
+        width = size
+        height = size
         self.grid = Matrix(width, height)
 
         self.center = IntPoint(width/2, height/2)
@@ -221,6 +233,44 @@ class ShuffledGrid:
     def connect_items(self, item1, item2, move, spot):
         # base class placeholder
         return 1
+
+    def _get_items_on_line(self, offset, start, slope):
+        items = []
+        line_center = start.add( slope.multiply_scalar(len(self.grid)/2) )
+        if not self.grid.ContainsPoint( line_center ):
+            return items
+
+        p = start.copy()
+        while not self.grid.ContainsPoint(p):
+            p = p.add(slope)
+
+        while self.grid.ContainsPoint(p):
+            if self.grid[p.x][p.y]:
+                items.append(self.grid[p.x][p.y])
+            p = p.add(slope)
+
+        if len(items) == 0:
+            # don't go past the center point
+            if line_center == self.center:
+                return items
+            # otherwise recurse
+            start = start.subtract(offset)
+            return self._get_items_on_line(offset, start, slope)
+        return items
+
+    def get_items_on_edge(self, offset):
+        # recursively walk back the line until we find something or we hit the center
+        size = len(self.grid)
+        if size == 1:
+            return [ self.grid[0][0] ]
+
+        p = offset.add(Point(1,1)).multiply_scalar((size - 1)*0.5)
+        slope = offset.flip()
+        start = p.subtract(self.center.multiply(slope))
+        start = IntPoint.from_point(start)
+
+        # info('get_items_on_edge center: '+repr(self.center)+', size: '+str(size)+', offset: '+repr(offset)+', p: '+repr(p)+', start: '+repr(start)+', slope: '+repr(slope))
+        return self._get_items_on_line(offset, start, slope)
 
     def get_empty_spot(self, rand):
         spot = self.center.copy()

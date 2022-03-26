@@ -51,6 +51,27 @@ class TestEntranceRando(unittest.TestCase):
         m = grid.put_random_item_in_spot(IntPoint(1, 0))
         self.assertEqual(m, maps['aldebaran'])
 
+        m4 = maps['nw']
+        m5 = maps['ne']
+        m6 = maps['se']
+        grid.shuffled_items.append(m4)
+        grid.shuffled_items.append(m5)
+        grid.shuffled_items.append(m6)
+        self.assertCountEqual(grid.shuffled_items, [m5, m4, m6])
+        grid.put_random_item_in_spot(IntPoint(2, 0))
+        grid.put_random_item_in_spot(IntPoint(2, 1))
+        grid.put_random_item_in_spot(IntPoint(2, 2))
+        self.assertCountEqual(grid.shuffled_items, [m5])
+
+        right_edge = grid.get_items_on_edge(Point(1, 0))
+        self.assertCountEqual(right_edge, [m4, m6])
+
+        bottom_edge = grid.get_items_on_edge(Point(0, -1))
+        self.assertCountEqual(bottom_edge, [m2, m4])
+
+        top_edge = grid.get_items_on_edge(Point(0, 1))
+        self.assertCountEqual(top_edge, [m3])
+
     def test_shuffle_biome(self):
         for m in maps.values():
             m.closest_city = 'prontera'

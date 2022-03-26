@@ -1,6 +1,5 @@
 import ro_randomizer.base
 from ro_randomizer.base import *
-from ro_randomizer.script import *
 from ro_randomizer.map import *
 
 class MapsGrid(ShuffledGrid):
@@ -69,9 +68,14 @@ class WorldGrid(ShuffledGrid):
                         if w.toMap is None:
                             self.warps.append(w)
 
-
-    def items_can_connect(self, m1, m2, move):
-        return True
+    def items_can_connect(self, biome1, biome2, move):
+        edge1 = biome1.get_items_on_edge(move)
+        edge2 = biome2.get_items_on_edge(move.negative())
+        for e1 in edge1:
+            for e2 in edge2:
+                if biome1.items_can_connect(e1, e2, move):
+                    return True
+        return False
 
     def clear_connections(self):
         for biome in self.items:
@@ -81,6 +85,12 @@ class WorldGrid(ShuffledGrid):
             w.toMap = None
         pass
 
-    def connect_items(self, map1, map2, move, spot):
-        return 1
+    def connect_items(self, biome1, biome2, move, spot):
+        edge1 = biome1.get_items_on_edge(move)
+        edge2 = biome2.get_items_on_edge(move.negative())
+        linked = 0
+        for e1 in edge1:
+            for e2 in edge2:
+                linked += biome1.connect_items(e1, e2, move, spot)
+        return linked
 
