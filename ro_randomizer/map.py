@@ -39,8 +39,8 @@ class Map():
         try:
             self.size = map_sizes[name]
         except Exception as e:
-            warning('Map __init__ ' +repr(e)+' using default size of (64, 64)')
             self.size = IntPoint(64, 64)
+            warning('Map __init__', e, 'using default size of', self.size)
 
     def append(self, warp):
         global maps
@@ -62,7 +62,7 @@ class Map():
             if (w.fromPos.x - center.x) * cmpX >= 0 and (w.fromPos.y - center.y) * cmpY >= 0:
                 warps.append(w)
         if len(warps) == 0:
-            trace("get_num_warps_on_side(" + self.name + ", " + repr(offset) + "): 0 / "+str(len(self.warps)))
+            trace("get_num_warps_on_side(", self.name, ", ", offset, "): 0 / ", len(self.warps))
         return warps
 
     def estimate_position(self, fromWarp, fromMap):
@@ -87,7 +87,7 @@ def estimate_positions(location_anchors):
     warps = {}
     for a in location_anchors:
         if a['map'] not in maps:
-            warning('location_anchor '+a['map']+' not found')
+            warning('location_anchor', a['map'], 'not found')
             continue
         m = maps[a['map']]
         m.position = Point(a['x'], a['y'])
@@ -141,7 +141,7 @@ def add_warp(w, type):
             m.type = type
 
     m.append(w)
-    debug('added warp: ' + repr(w))
+    debug('added warp:', w)
 
 
 def new_warp(statement, folder):
@@ -191,7 +191,7 @@ class MapScript():
                     self.warps.append(t)
                     debug(t[2])
         debug(self.warps)
-        info(self.name + " warps: " + str(len(self.warps)))
+        info(self.name, "warps:", len(self.warps))
 
 
 def read_gat_file(name):
@@ -208,7 +208,7 @@ def read_gat_file(name):
         size = IntPoint(width, height)
         map_sizes[mapname] = size
     except Exception as e:
-        warning(str(e))
+        warning(e)
 
 
 def write_on_world_string(arr, str, pos, off, scale):

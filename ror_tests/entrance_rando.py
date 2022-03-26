@@ -101,7 +101,7 @@ class TestEntranceRando(unittest.TestCase):
 
     def test_matrix(self):
         m = Matrix(4, 3)
-        debug("created matrix "+repr(m))
+        debug("created matrix", m)
         self.assertTrue( m.ContainsPoint(Point(0,0)) )
         self.assertTrue( m.ContainsPoint(Point(3,2)) )
         self.assertFalse( m.ContainsPoint(Point(-1,0)) )
@@ -111,7 +111,7 @@ class TestEntranceRando(unittest.TestCase):
         m[3][2] = 1
 
     def checkPos(self, map, x, y):
-        info('checkPos: '+ repr(maps[map]) + ' vs ' + repr((x, y)))
+        info('checkPos:', maps[map], 'vs', (x, y))
         self.assertEqual(maps[map].position.x, x)
         self.assertEqual(maps[map].position.y, y)
 

@@ -6,8 +6,7 @@ parser = argparse.ArgumentParser(description='Randomizer for Ragnarok Online pri
 parser.add_argument('--seed', help='What seed number to use.')
 parser.add_argument('--settings-file', default='settings.json', help='What json file to read local settings from.')
 args = vars(parser.parse_args())
-notice('args: ')
-notice(repr(args))
+notice('args:', args)
 
 default_settings = {}
 with open('settings.default.json') as f:

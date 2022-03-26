@@ -13,8 +13,7 @@ def randomize(local_settings):
     check_settings_config(settings)
 
     printHeader("randomizing with seed: "+str(seed))
-    notice("settings: ")
-    notice(repr(settings))
+    notice("settings:", settings)
 
     if do_profiling:
         profile("ro_randomizer.core.do_rando()")

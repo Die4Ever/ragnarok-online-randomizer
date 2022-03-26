@@ -48,26 +48,26 @@ def increase_loglevel(new_loglevel):
 WARNING = '\033[91m'
 ENDCOLOR = '\033[0m'
 
-def trace(str):
+def trace(*args, **kargs):
     global loglevel
     if loglevel >= DebugLevels.TRACE:
-        print(str)
+        print(*args, **kargs)
 
-def debug(str):
+def debug(*args, **kargs):
     global loglevel
     if loglevel >= DebugLevels.DEBUG:
-        print(str)
+        print(*args, **kargs)
 
-def info(str):
+def info(*args, **kargs):
     global loglevel
     if loglevel >= DebugLevels.INFO:
-        print(str)
+        print(*args, **kargs)
 
-def notice(str):
+def notice(*args, **kargs):
     # this might be useful if we do threading? so we can redirect to a file?
     global loglevel
     if loglevel >= DebugLevels.NOTICE:
-        print(str)
+        print(*args, **kargs)
 
 def prependException(e, msg):
     if not e.args:
@@ -79,18 +79,18 @@ def appendException(e, msg):
         e.args = ("",)
     e.args = (e.args[0] + " \n" + msg,) + e.args[1:]
 
-def warning(e):
-    print(WARNING+e+ENDCOLOR)
+def warning(*args, **kargs):
+    print(WARNING + ' '.join(map(str, args)) + ENDCOLOR, **kargs)
 
-def printError(e):
-    print(WARNING+e+ENDCOLOR)
+def printError(*args, **kargs):
+    print(WARNING + ' '.join(map(str, args)) + ENDCOLOR, **kargs)
 
-def printHeader(text):
-    print("")
-    print("=====================================================")
-    print("            "+text)
-    print("=====================================================")
-    print("")
+def printHeader(*args):
+    print(
+          "\n====================================================="
+        + "\n            " + ' '.join(map(str, args))
+        + "\n====================================================="
+        + "\n")
 
 
 def insensitive_glob(pattern):
@@ -269,7 +269,7 @@ class ShuffledGrid:
         start = p.subtract(self.center.multiply(slope))
         start = IntPoint.from_point(start)
 
-        # info('get_items_on_edge center: '+repr(self.center)+', size: '+str(size)+', offset: '+repr(offset)+', p: '+repr(p)+', start: '+repr(start)+', slope: '+repr(slope))
+        trace('get_items_on_edge center:', self.center, ', size:', size, ', offset:', offset, ', p:', p, ', start:', start, ', slope:', slope)
         return self._get_items_on_line(offset, start, slope)
 
     def get_empty_spot(self, rand):
@@ -305,7 +305,7 @@ class ShuffledGrid:
                 self.shuffled_items.remove(item)
                 self.grid[spot.x][spot.y] = item
                 return item
-        trace(type(self).__name__ + '.put_random_item_in_spot failed, '+str(len(self.shuffled_items)) + '/' + str(len(self.grid)) )
+        trace(type(self).__name__, '.put_random_item_in_spot failed,', len(self.shuffled_items), '/', len(self.grid) )
         return None
 
     def fill(self, rand):

@@ -6,7 +6,7 @@ class MapsGrid(ShuffledGrid):
     def items_can_connect(self, m1, m2, move):
         # TODO: how to handle corner teleporters? we can check the num1 and num2 returned from maps_can_connect and score them up?
         if len(m1.warps) < 1 or len(m2.warps) < 1:
-            warning('maps_can_connect failed, len('+m1.name+'.warps): ' + str(len(m1.warps)) + ', len('+m2.name+'.warps): ' + str(len(m2.warps)) )
+            warning('maps_can_connect failed, len('+m1.name+'.warps):', len(m1.warps), ', len('+m2.name+'.warps):', len(m2.warps) )
 
         num1 = len(m1.get_warps_on_side(move.negative()))
         num2 = len(m2.get_warps_on_side(move))
@@ -31,7 +31,7 @@ class MapsGrid(ShuffledGrid):
         offset = move.multiply(map1.size)
         linked = 0
         # for each warps1, find the nearest available warps2 and link them
-        trace('connect_items('+repr(map1)+', '+repr(map2)+') warps1: '+str(len(warps1))+', warps2: '+str(len(warps2)))
+        trace('connect_items(', map1, ', ', map2, ') warps1: ', len(warps1), ', warps2: ', len(warps2))
         for w1 in warps1:
             if w1.toMap is not None:
                 continue
@@ -50,7 +50,7 @@ class MapsGrid(ShuffledGrid):
                 w2.toMap = w1.map
                 w2.toPos = w1.fromPos
                 linked += 1
-                trace('connect_items linked '+repr(w1)+', '+repr(w2))
+                trace('connect_items linked', w1, ',', w2)
         return linked
 
 

@@ -39,7 +39,7 @@ def entrance_rando():
     for m in maps.values():
         m.original_position = m.position
         if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
-            notice("map missing position:" + m.name + ', ' + repr(m))
+            notice("map missing position:", m.name, ',', m)
         elif m.type == MapTypes.CITY:
             debug(m)
 
@@ -65,10 +65,10 @@ def shuffle_world(seed):
     while not good:
         if i > 1000:
             raise Exception('shuffle_world('+str(seed)+') failed at '+str(i)+' attempts')
-        printHeader('shuffle_world: ' + str(seed) + ', attempt: ' + str(i) + '...')
+        printHeader('shuffle_world:', seed, ', attempt:', i)
         good = try_shuffle_world(seed, i)
         i += 1
-    info('shuffle_world('+str(seed)+') took '+str(i)+' attempts')
+    info('shuffle_world(', seed, ') took', i, 'attempts')
 
     return i
 
@@ -81,24 +81,24 @@ def shuffle_biome(city, seed):
         if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None and m.type != MapTypes.INDOORS:
             areas.append(m)
 
-    info('starting shuffle_biome('+repr(city)+', '+str(seed)+') len(areas): '+str(len(areas)) + '...')
+    info('starting shuffle_biome(', city, ',', seed, ') len(areas):', len(areas))
     if len(areas) == 0:
         printError('shuffle_biome found 0 areas!')
         return (None, 0)
     i = 0
     grid = None
     while not grid:
-        if i > 100000:
-            warning('shuffle_biome('+repr(city)+', '+str(seed)+') failed at '+str(i)+' attempts')
+        if i > 10000:
+            warning('shuffle_biome(', city, ',', seed, ') failed at', i, 'attempts')
             return (None, i)
         grid = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
 
     # success!
     if i > 1000:
-        warning('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
+        warning('shuffle_biome(', city, ',', seed, ') took', i, 'attempts')
     else:
-        debug('shuffle_biome('+repr(city)+', '+str(seed)+') took '+str(i)+' attempts')
+        debug('shuffle_biome(', city, ',', seed, ') took', i, 'attempts')
     return (grid, i)
 
 
@@ -157,7 +157,7 @@ def try_shuffle_world(seed, attempt):
         biomes.append(biome)
 
     # now connect the biomes together
-    info('connecting world together, biomes: '+str(len(biomes)))
+    info('connecting world together, biomes:', len(biomes))
     world = None
     for i in range(1000):
         world = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
