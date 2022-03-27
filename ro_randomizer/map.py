@@ -169,6 +169,7 @@ class MapScript():
         self.name = path[-1]
         self.folder = path[-2]
         debug(self.__dict__)
+        self.script = None
         if self.folder == 'other' or self.folder == 'warps':
             return
         self.script = ROScript(file)
@@ -230,7 +231,7 @@ def write_on_world_string(arr, str, pos, off, scale):
     return (x, y)
 
 
-def world_to_string(width=80, height=70):
+def world_to_string(width=80, height=50):
     global maps
     # make a 2D array of characters
     # settings for width and height scaling

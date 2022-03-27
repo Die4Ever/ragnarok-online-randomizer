@@ -9,24 +9,69 @@ class ScriptStatement():
         self.start_idx = start_idx
         self.end_idx = end_idx
 
+    def __repr__(self):
+        ret = ''
+        for a in self.args:
+            if a is None:
+                ret = '//' + ret + 'None\t'
+                continue
+
+            for b in a:
+                if b is None:
+                    ret = '//' + ret + 'None,'
+                    continue
+                ret += str(b) + ','
+            ret = ret[:-1] + '\t'
+        return ret[:-1]
+
 
 class CodeTree(list):
     def __init__(self, content, start_idx):
         self.content = content
         self.type = 'tree'
         self.start_idx = start_idx
-    
+
     def append(self, item):
         if item:
             super().append(item)
 
+    def __str__(self):
+        return self.__name__ + '(' + str(len(self)) + ')'
+
+    def __repr__(self):
+        ret = ''
+        for s in self:
+            ret += repr(s) + '\n'
+        return ret
+
+
 class ROScript():
     def __init__(self, file):
         self.file = file
+        path = list(Path(file).parts)
+        self.name = path[-1]
+        self.folder = path[-2]
         content = None
         with open(self.file) as f:
             content = f.read()
         self.root = parse_script(content)
+
+    def __str__(self):
+        return self.file + ' ' + str(self.root)
+
+    def __repr__(self):
+        return '/* randomized from ' + self.file + '*/\n' + repr(self.root)
+
+    def write(self, output_path):
+        path = output_path + self.folder + '/'
+        if not exists_dir(path):
+            os.makedirs(path, exist_ok=True)
+        path += self.name
+        info('writing to:', path)
+        if exists(path):
+            info("appending")
+        with open(path, "a") as outfile:
+            outfile.write( repr(self) )
 
 
 
@@ -39,7 +84,7 @@ def parse_script_line(content, sub, start_idx, end_idx):
     args = []
     for t in tabs:
         args.append(t.split(','))
-    
+
     type = None
     if len(args) > 1 and len(args[1]) > 0:
         type = args[1][0]
@@ -74,7 +119,7 @@ def parse_script(content, sub=False, idx=-1):
                 in_block_comment = False
             prev = c
             continue
-        
+
         if c == '/' and len(buf) and buf[-1] == '/':
             in_line_comment = True
             buf = buf[:-1]
@@ -84,7 +129,7 @@ def parse_script(content, sub=False, idx=-1):
             buf = ''
             start_idx = idx+1
             continue
-        
+
         if c == '{':
             in_curly_brace += 1
             if in_curly_brace == 1:
@@ -110,7 +155,7 @@ def parse_script(content, sub=False, idx=-1):
             continue
 
         buf += c
-    
+
     buf = buf.strip()
     if len(buf):
         t = parse_script_line(buf, sub, start_idx, idx)

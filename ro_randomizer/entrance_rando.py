@@ -22,6 +22,7 @@ def entrance_rando():
     seed = settings['seed']
     ro_randomizer.base.maps = {}
     ro_randomizer.base.map_sizes = {}
+    map_scripts = {}
 
     printHeader("ENTRANCE RANDO!")
 
@@ -33,7 +34,7 @@ def entrance_rando():
     for input in settings['inputs']['warps']:
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
-                ms = MapScript(file)
+                map_scripts[file] = MapScript(file)
 
     estimate_positions(settings['location_anchors'])
     for m in maps.values():
@@ -51,6 +52,7 @@ def entrance_rando():
 
     shuffle_world(seed)
     info(world_to_string())
+    write_warps(maps, map_scripts, settings['outputs']['warps'])
     # TODO:
     # mark the desired danger ratings for the lowbie routes for travelling between cities
     #   these don't need to be optimal routes between cities
@@ -135,7 +137,7 @@ def try_connect_world(rand, biomes):
     if not grid.finalize_connections():
         return None
 
-    # ensure can navigate from all/most areas to the city
+    # TODO: ensure can navigate from all/most areas to the city
     estimate_positions(get_settings()['location_anchors'])
     # for b in biomes:
     #     if map.type == MapTypes.CITY and map.position is None:
@@ -168,3 +170,35 @@ def try_shuffle_world(seed, attempt):
         printError('failed to connect world')
         return False
     return True
+
+
+def write_warps(maps, map_scripts, output_path):
+    for m in maps.values():
+        for w in m.warps:
+            w.statement.args[3][2] = w.toMap
+            w.statement.args[3][3] = w.toPos.x
+            w.statement.args[3][4] = w.toPos.y
+
+
+    if exists_dir(output_path):
+        if not get_settings().get('unattended'):
+            input("Press enter to delete old "+output_path+'\n(set unattended to true in your settings to skip this confirmation)')
+        notice("Removing old "+output_path)
+        shutil.rmtree(output_path)
+    if not exists_dir(output_path):
+        os.makedirs(output_path, exist_ok=True)
+
+    notice('writing all warps to:', output_path)
+
+    with open(output_path + ' randomizer_info.txt', "w") as outfile:
+        out = '/*\n'
+        out += datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n'
+        out += 'settings: ' + json.dumps(get_settings(), indent=4) + '\n\n'
+        out += world_to_string(120, 50)
+        out += '\n\n*/\n'
+        outfile.write( out )
+
+    for m in map_scripts.values():
+        if m.script:
+            m.script.write(output_path)
+

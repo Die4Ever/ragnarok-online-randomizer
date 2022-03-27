@@ -9,5 +9,6 @@
         "sql": "out/sql-files/",
         "mobs": "out/npc/mobs/",
         "warps": "out/npc/warps/"
-    }
+    },
+    "unattended": false
 }

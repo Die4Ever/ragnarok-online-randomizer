@@ -20,11 +20,7 @@ except FileNotFoundError as e:
     e2 = Exception('ERROR: You need to copy settings.example.json to '+args['settings_file']+' and adjust the paths.')
     raise e2 from e
 
-merged = default_settings
-for p in settings:
-    if p not in merged:
-        merged[p] = {}
-    merged[p] = {**merged[p], **settings[p]}
+merged = dict(settings, **default_settings)
 
 set_settings(merged)
 ro_randomizer.core.randomize(merged)
