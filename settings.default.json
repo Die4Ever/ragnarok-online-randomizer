@@ -10,6 +10,9 @@
     ],
     "ignore_maps": [
         "prt_fild08a", "prt_fild08b", "prt_fild08c", "prt_fild08d",
-        "izlude_a", "izlude_b", "izlude_c", "izlude_d"
+        "prt_church", "prt_cas", "prt_gld", "prt_cas_q",
+        "izlude_a", "izlude_b", "izlude_c", "izlude_d",
+        "nif_fild01", "nif_fild02",
+        "yggdrasil01"
     ]
 }

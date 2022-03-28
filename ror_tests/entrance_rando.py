@@ -1,7 +1,9 @@
+from pydantic import ColorError
 from ro_randomizer.entrance_rando import *
+from ror_tests.base_tests import *
 import unittest
 
-class TestEntranceRando(unittest.TestCase):
+class TestEntranceRando(BaseTestCase):
     @classmethod
     def setUpClass(cls):
         # lower numbers are SW for these tests
@@ -23,16 +25,11 @@ class TestEntranceRando(unittest.TestCase):
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
         for m in maps.values():
             m.original_position = m.position
+            for w in m.warps:
+                w.setDefaultInPos()
+
         set_closest_cities()
         debug(world_to_string(16, 12))
-
-    def setUp(self):
-        print('----')
-        pass
-
-    def tearDown(self):
-        print('\n===================\n'+ str(self).partition(' (')[0] +' result: ', sep='')
-        pass
 
     def test_closest_cities(self):
         self.assertEqual(maps['prontera'].closest_city, 'prontera')
@@ -82,87 +79,76 @@ class TestEntranceRando(unittest.TestCase):
         self.assertCountEqual(top_edge, [m3])
 
     def test_shuffle_biome(self):
-        for m in maps.values():
-            m.closest_city = 'prontera'
-            m.position = None
-        (grid, attempts) = shuffle_biome(maps['prontera'], 1)
-        self.assertIsNotNone(grid)
-        self.assertTrue( attempts < 10 )
-        self.verifyGrid(grid)
+        anchors = get_settings()['location_anchors']
 
+        small_biome = [maps['prontera'], maps['north']]
+        small_biome_d = dict(map(lambda x: (x.name,x), small_biome))
+        grid = self.shuffle_biome('prontera', small_biome, 1)
+        estimate_positions(anchors)
+        debug(world_to_string(16, 12))
+        self.printWorld(small_biome, grid)
+        assertWarps(small_biome_d, True)
+
+        grid = self.shuffle_biome('prontera', maps.values(), 1)
+        estimate_positions(anchors)
+        debug(world_to_string(16, 12))
+        self.printWorld(maps.values(), grid)
+        assertWarps(maps, True)
+
+        self.shuffle_biome('prontera', maps.values(), 999)
+        estimate_positions(anchors)
+        debug(world_to_string(16, 12))
+        self.printWorld(maps.values(), grid)
+        assertWarps(maps, True)
+
+    def shuffle_biome(self, city, biome_maps, seed):
+        info('testing shuffle_biome '+city+' with '+str(len(biome_maps))+' maps')
+        city_map = None
         for m in maps.values():
-            m.closest_city = 'prontera'
+            m.closest_city = ''
             m.position = None
-        (grid, attempts) = shuffle_biome(maps['prontera'], 999)
+            for w in m.warps:
+                w.toMap = None
+        for m in biome_maps:
+            if m.name == city:
+                city_map = m
+            m.closest_city = 'prontera'
+        (grid, attempts) = shuffle_biome(city_map, seed)
         self.assertIsNotNone(grid)
-        self.assertTrue( attempts < 10 )
+        self.assertTrue( attempts < 100 )
         self.verifyGrid(grid)
+        return grid
 
     def test_shuffle_world(self):
+        self.shuffle_world(1)
+        self.shuffle_world(999)
+
+    def shuffle_world(self, seed):
         anchors = get_settings()['location_anchors']
         for m in maps.values():
             m.closest_city = 'prontera'
             m.position = None
-        self.assertTrue( shuffle_world(1) < 100 )
+        world = try_shuffle_world(seed, 0)
+        self.assertIsNotNone(world)
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
-        self.printWorld(maps)
+        self.printWorld(maps.values(), world)
         assertWarps(maps, True)
-
-        for m in maps.values():
-            m.closest_city = 'prontera'
-            m.position = None
-        self.assertTrue( shuffle_world(999) < 100 )
-        estimate_positions(anchors)
-        debug(world_to_string(16, 12))
-        self.printWorld(maps)
-        assertWarps(maps, True)
-
-    def test_matrix(self):
-        m = Matrix(4, 3)
-        debug("created matrix")
-        self.assertTrue( m.ContainsPoint(Point(0,0)) )
-        self.assertTrue( m.ContainsPoint(Point(3,2)) )
-        self.assertFalse( m.ContainsPoint(Point(-1,0)) )
-        self.assertFalse( m.ContainsPoint(Point(0,-1)) )
-        self.assertFalse( m.ContainsPoint(Point(4,0)) )
-        self.assertFalse( m.ContainsPoint(Point(0,3)) )
-        m[0][0] = 'L'
-        m[0][1] = 'L'
-        m[0][2] = 'L'
-        m[3][0] = 'R'
-        m[3][1] = 'R'
-        m[3][2] = 'R'
-        debug(repr(m))
-
-    def test_shuffled_grid(self):
-        grid = ShuffledGrid(random.Random(1), ['C', 'C', 'C'])
-        grid.grid[0][0] = 'L'
-        grid.grid[0][1] = 'L'
-        grid.grid[0][2] = 'L'
-        grid.grid[2][0] = 'R'
-        grid.grid[2][1] = 'R'
-        grid.grid[2][2] = 'R'
-        debug(repr(grid))
-        left = grid.get_items_on_edge(IntPoint(-1, 0))
-        right = grid.get_items_on_edge(IntPoint(1, 0))
-        self.assertEqual(left, ['L', 'L', 'L'])
-        self.assertEqual(right, ['R', 'R', 'R'])
-        top = grid.get_items_on_edge(IntPoint(0, -1))
-        self.assertCountEqual(top, ['L', 'R'])
 
     def checkPos(self, map, x, y):
         info('checkPos:', maps[map], 'vs', (x, y))
         self.assertEqual(maps[map].position.x, x)
         self.assertEqual(maps[map].position.y, y)
 
-    def printWorld(self, maps):
-        for m in maps.values():
-            print(m)
+    def printWorld(self, maps, world):
+        if len(world.grid) == 1:
+            debug(repr(world.grid[0][0]))
+        for m in maps:
+            debug(m, m.position)
             for w in m.warps:
-                print('\t', w)
+                debug('\t', w)
             self.assertIsNotNone(m.position)
-        print('')
+        debug('')
 
     def verifyGrid(self, grid):
         info('verifying grid...')
@@ -183,5 +169,8 @@ def warp(map, fromX, fromY, toMap, toX, toY):
 
 
 def warps(map, fromX, fromY, toMap, toX, toY):
+    global map_sizes
+    map_sizes[map] = IntPoint(64, 64)
+    map_sizes[toMap] = IntPoint(64, 64)
     warp(map, fromX, fromY, toMap, toX, toY)
     warp(toMap, toX, toY, map, fromX, fromY)

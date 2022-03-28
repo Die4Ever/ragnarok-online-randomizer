@@ -1,4 +1,5 @@
-from ro_randomizer.entrance_rando import *
+from ro_randomizer.script import *
+from ror_tests.base_tests import *
 import unittest
 
 testscript = """
@@ -49,8 +50,8 @@ dali,64,129,0	warp	#dali_to_dali02	1,1,newmap,1,2
 dali02,66,97,0	warp	#dali02_to_dali	1,1,dali,64,125
 """
 
-class TestScriptParsing(unittest.TestCase):
-    def test(self):
+class TestScriptParsing(BaseTestCase):
+    def test_script(self):
         s = parse_script(testscript)
 
         dali_to_dali02 = s[5]

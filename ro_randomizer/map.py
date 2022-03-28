@@ -8,6 +8,7 @@ class MapTypes(Enum):
     DUNGEON = 3
     INDOORS = 4
     OTHER = 5
+    IGNORE = 6
 
 
 class Warp():
@@ -201,7 +202,7 @@ def new_warp(statement, folder):
     w = Warp(statement)
     ignore_maps = get_settings()['ignore_maps']
     if w.map in ignore_maps or w.toMap in ignore_maps:
-        return
+        type = MapTypes.IGNORE
     add_warp(w, type)
 
 class MapScript():

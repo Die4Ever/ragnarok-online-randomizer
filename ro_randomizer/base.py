@@ -49,6 +49,7 @@ def increase_loglevel(new_loglevel):
 
 # text colors
 WARNING = '\033[91m'
+GREENCOLOR = '\033[92m'
 ENDCOLOR = '\033[0m'
 
 def trace(*args, **kargs):

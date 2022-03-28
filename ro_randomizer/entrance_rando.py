@@ -42,12 +42,12 @@ def entrance_rando():
         m.original_position = m.position
         if m.position is None and m.type == MapTypes.CITY and len(m.warps) > 0:
             notice("map missing position:", m.name, ',', m)
-        elif m.type == MapTypes.CITY:
-            debug(m)
+        #elif m.type == MapTypes.CITY:
+        #    debug(m)
 
     assertWarps(maps)
 
-    notice(maps['morocc'])
+    #notice(maps['morocc'])
     debug(world_to_string())
 
     # now mark each area with their closest city, to group them into biomes?
@@ -55,6 +55,9 @@ def entrance_rando():
 
     shuffle_world(seed)
     info(world_to_string())
+    for w in maps['prontera'].warps:
+        if w.toMap is None:
+            info(w.warpname, w)
     write_warps(maps, map_scripts, settings['outputs']['warps'])
     # TODO:
     # mark the desired danger ratings for the lowbie routes for travelling between cities
@@ -66,12 +69,12 @@ def entrance_rando():
 
 def shuffle_world(seed):
     i = 0
-    good = False
-    while not good:
+    while True:
         if i > 1000:
             raise Exception('shuffle_world('+str(seed)+') failed at '+str(i)+' attempts')
         printHeader('shuffle_world:', seed, ', attempt:', i)
-        good = try_shuffle_world(seed, i)
+        if try_shuffle_world(seed, i):
+            break
         i += 1
     info('shuffle_world(', seed, ') took', i, 'attempts')
 
@@ -86,7 +89,9 @@ def shuffle_biome(city, seed):
     areas = []
     for m in maps.values():
         # what about areas that have 0 warps out, but 1 or more warps in?
-        if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None and m.type != MapTypes.INDOORS:
+        if m.type == MapTypes.IGNORE or m.type == MapTypes.INDOORS:
+            continue
+        if m.closest_city == city.name and len(m.warps) > 0 and m.original_position is not None:
             areas.append(m)
 
     info('starting shuffle_biome(', city, ',', seed, ') len(areas):', len(areas))
@@ -97,7 +102,7 @@ def shuffle_biome(city, seed):
     grid = None
     while not grid:
         if i > 10000:
-            warning('shuffle_biome(', city, ',', seed, ') failed at', i, 'attempts')
+            warning('shuffle_biome(', city, ',', seed, ') failed at', i, 'attempts, original_position:', city.original_position, areas)
             return (None, i)
         grid = try_shuffle_areas(random.Random(seed + i), areas)
         i += 1
@@ -125,7 +130,8 @@ def try_shuffle_areas(rand, areas):
     # ensure can navigate from all/most areas to the city
     estimate_positions([{'map': grid.grid[grid.center.x][grid.center.y].name, 'x': 0, 'y': 0}])
     for map in areas:
-        if map.type == MapTypes.CITY and map.position is None:
+        #if map.type == MapTypes.CITY and map.position is None:
+        if map.position is None and map.original_position is not None:
             return None
         map.position = None
 
@@ -161,7 +167,7 @@ def try_shuffle_world(seed, attempt):
             continue
         (biome, attempts) = shuffle_biome(c, seed + attempt * 1000007)
         if not biome:
-            return False
+            return None
         biomes.append(biome)
 
     # now connect the biomes together
@@ -174,8 +180,8 @@ def try_shuffle_world(seed, attempt):
 
     if not world:
         printError('failed to connect world')
-        return False
-    return True
+        return None
+    return world
 
 
 def write_warps(maps, map_scripts, output_path):
@@ -216,22 +222,22 @@ def assertWarps(maps, error=False):
     for m in maps.values():
         if m.type == MapTypes.INDOORS or m.conns_in == 0:
             continue
+        good = False
         for w in m.warps:
-            if not w.toMap:
+            if not w.toMap and not w.statement.args[3][2]:
                 if error:
-                    raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w))
+                    raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w)+', '+repr(w.statement))
                 continue
             if w.inPos == w.fromPos:
                 warning('\nassertWarps found w.inPos == w.fromPos:', m, w)
-            good = False
-            m2 = maps[w.toMap]
-            if len(m2.warps) == 0:
+            m2 = maps.get(w.toMap)
+            if not m2 or len(m2.warps) == 0:
                 continue
             for w2 in m2.warps:
                 if w.toMap == w2.map and w.map == w2.toMap:
                     good = True
-            if not good:
-                warning('\nassertWarps warning in map:', m, '\n\twarp:', w, '\n\ttoMap:', m2, '\n\ttoMap.warps:', m2.warps)
-                if error:
-                    raise Exception('assertWarps with error enabled, found 1 way connection: '+str(m)+' '+str(w))
+        if not good:
+            warning('\nassertWarps warning in map:', m, '\n\twarps:', m.warps)
+            if error:
+                raise Exception('assertWarps with error enabled: '+str(m)+'\n\t'+str(m.warps))
     #
