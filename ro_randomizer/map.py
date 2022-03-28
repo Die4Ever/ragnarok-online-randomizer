@@ -46,6 +46,11 @@ class Map():
         self.type = type
         if name.endswith('_in'):
             self.type = MapTypes.INDOORS
+
+        ignore_maps = get_settings()['ignore_maps']
+        if name in ignore_maps:
+            self.type = MapTypes.IGNORE
+
         self.position = None
         self.conns_in = 0
         self.closest_city = None
@@ -101,7 +106,7 @@ class Map():
         for w in self.warps:
             if w.toMap != fromWarp.map:
                 continue
-            if w.fromPos.dist(fromWarp.toPos) > 15:
+            if w.fromPos.dist(fromWarp.toPos) > 12:
                 continue
             offset = w.fromPos.subtract(fromWarp.toPos)
             newInPos = w.fromPos.subtract(offset)
@@ -200,9 +205,6 @@ def new_warp(statement, folder):
         notice("unknown map type: "+folder)
 
     w = Warp(statement)
-    ignore_maps = get_settings()['ignore_maps']
-    if w.map in ignore_maps or w.toMap in ignore_maps:
-        type = MapTypes.IGNORE
     add_warp(w, type)
 
 class MapScript():

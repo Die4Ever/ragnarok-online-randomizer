@@ -101,7 +101,7 @@ def shuffle_biome(city, seed):
     i = 0
     grid = None
     while not grid:
-        if i > 10000:
+        if i > 1000:
             warning('shuffle_biome(', city, ',', seed, ') failed at', i, 'attempts, original_position:', city.original_position, areas)
             return (None, i)
         grid = try_shuffle_areas(random.Random(seed + i), areas)
@@ -150,7 +150,21 @@ def try_connect_world(rand, biomes):
         return None
 
     # TODO: ensure can navigate from all/most areas to the city
+    for m in maps.values():
+        m.position = None
     estimate_positions(get_settings()['location_anchors'])
+    goods = 0
+    bads = 0
+    for m in maps.values():
+        if m.original_position is None:
+            continue
+        if m.position is None:
+            bads += 1
+        else:
+            goods += 1
+    info('try_connect_world goods:', goods, 'bads:', bads)
+    if bads > goods:
+        return None
     # for b in biomes:
     #     if map.type == MapTypes.CITY and map.position is None:
     #         grid.clear_connections()
@@ -173,7 +187,7 @@ def try_shuffle_world(seed, attempt):
     # now connect the biomes together
     info('connecting world together, biomes:', len(biomes))
     world = None
-    for i in range(1000):
+    for i in range(100):
         world = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
         if world:
             break
@@ -187,6 +201,11 @@ def try_shuffle_world(seed, attempt):
 def write_warps(maps, map_scripts, output_path):
     for m in maps.values():
         for w in m.warps:
+            oldTo = w.statement.args[3][2]
+            oldToMap = maps.get(oldTo)
+            if oldToMap and oldToMap.type in [MapTypes.IGNORE, MapTypes.INDOORS]:
+                w.toMap = oldTo
+                w.toPos = IntPoint(w.statement.args[3][3], w.statement.args[3][4])
             w.statement.args[3][2] = w.toMap
             w.statement.args[3][3] = w.toPos.x
             w.statement.args[3][4] = w.toPos.y
