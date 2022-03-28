@@ -20,9 +20,19 @@ class Warp():
         self.span = IntPoint(s.args[3][0], s.args[3][1])
         self.toMap = s.args[3][2]
         self.toPos = IntPoint(s.args[3][3], s.args[3][4])
+        self.inPos = None
+
+    def setDefaultInPos(self):
+        info('setDefaultInPos', self)
+        self.inPos = self.fromPos.subtract(IntPoint(32, 32)).multiply_scalar(10)
+        self.inPos.clamp(IntPoint(-4, -4), IntPoint(4, 4))
+        self.inPos = self.inPos.subtract(self.fromPos)
 
     def __repr__(self):
-        return self.map + " -> " + self.toMap
+        toMap = self.toMap
+        if not toMap:
+            toMap = 'None'
+        return self.map + " -> " + toMap + ' ('+self.statement.args[3][2]+')'
 
 
 class Map():
@@ -81,6 +91,20 @@ class Map():
         else:
             self.position = self.position.add(position).multiply_scalar(0.5)
 
+    def estimate_warp_offsets(self, fromWarp):
+        for w in self.warps:
+            if w.toMap != fromWarp.map:
+                continue
+            if w.fromPos.dist(fromWarp.toPos) > 15:
+                continue
+            offset = w.fromPos.subtract(fromWarp.toPos)
+            newInPos = w.fromPos.subtract(offset)
+            if w.inPos is None:
+                w.inPos = newInPos
+            else:
+                w.inPos = w.inPos.add(newInPos).multiply_scalar(0.5)
+
+
 
 def estimate_positions(location_anchors):
     global maps
@@ -111,6 +135,18 @@ def estimate_positions(location_anchors):
         warps.update(new_warps)
         new_warps = {}
 
+
+def estimate_warp_offsets():
+    global maps
+    for m in maps.values():
+        for w in m.warps:
+            to = maps.get(w.toMap)
+            if to:
+                to.estimate_warp_offsets(w)
+    for m in maps.values():
+        for w in m.warps:
+            if w.inPos is None:
+                w.setDefaultInPos()
 
 
 def set_closest_cities():
@@ -158,6 +194,9 @@ def new_warp(statement, folder):
         notice("unknown map type: "+folder)
 
     w = Warp(statement)
+    ignore_maps = get_settings()['ignore_maps']
+    if w.map in ignore_maps or w.toMap in ignore_maps:
+        return
     add_warp(w, type)
 
 class MapScript():

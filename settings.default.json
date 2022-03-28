@@ -7,5 +7,9 @@
         { "map": "ayothaya", "x": 1600, "y": 1800},
         { "map": "moscovia", "x": 1800, "y": -2100},
         { "map": "morocc", "x": -1700, "y": -1700}
+    ],
+    "ignore_maps": [
+        "prt_fild08a", "prt_fild08b", "prt_fild08c", "prt_fild08d",
+        "izlude_a", "izlude_b", "izlude_c", "izlude_d"
     ]
 }

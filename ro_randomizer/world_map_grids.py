@@ -19,11 +19,12 @@ class MapsGrid(ShuffledGrid):
     def clear_connections(self):
         for map in self.items:
             map.position = None
-            if map.type != MapTypes.INDOORS and map.conns_in > 0:
-                for w in map.warps:
-                    to = maps.get(w.toMap)
-                    if to and to.type != MapTypes.INDOORS:
-                        w.toMap = None
+            if map.type == MapTypes.INDOORS or map.conns_in == 0:
+                continue
+            for w in map.warps:
+                to = maps.get(w.toMap)
+                if w.toMap != w.map and to and to.type != MapTypes.INDOORS:
+                    w.toMap = None
 
     def connect_items(self, map1, map2, move, spot):
         warps1 = map1.get_warps_on_side(move.negative())
@@ -46,9 +47,9 @@ class MapsGrid(ShuffledGrid):
             if closest:
                 w2 = closest[0]
                 w1.toMap = w2.map
-                w1.toPos = w2.fromPos
+                w1.toPos = w2.inPos
                 w2.toMap = w1.map
-                w2.toPos = w1.fromPos
+                w2.toPos = w1.inPos
                 linked += 1
                 trace('connect_items linked', w1, ',', w2)
         return linked

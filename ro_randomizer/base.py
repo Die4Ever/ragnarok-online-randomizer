@@ -151,6 +151,10 @@ class Point():
         self.x = min(self.x, p.x)
         self.y = min(self.y, p.y)
 
+    def clamp(self, min, max):
+        self.x = clamp(self.x, min.x, max.x)
+        self.y = clamp(self.y, min.y, max.y)
+
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 

@@ -6,7 +6,7 @@ class TestEntranceRando(unittest.TestCase):
     def setUpClass(cls):
         # lower numbers are SW for these tests
         # cities first so they get marked as cities
-        set_settings({ 'location_anchors': [{'map': 'prontera', 'x': 0, 'y': 0}]})
+        set_settings({ 'location_anchors': [{'map': 'prontera', 'x': 0, 'y': 0}], 'ignore_maps': []})
         warps('prontera', 50, 100, 'north', 32, 0)
         warps('aldebaran', 32, 0, 'north', 32, 64)
         warps('payon', 0, 64, 'se', 64, 0)
@@ -19,6 +19,7 @@ class TestEntranceRando(unittest.TestCase):
 
         warps('prontera', 100, 0, 'se', 0, 64)
 
+        estimate_warp_offsets()
         estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
         for m in maps.values():
             m.original_position = m.position
@@ -91,6 +92,7 @@ class TestEntranceRando(unittest.TestCase):
         self.assertTrue( shuffle_world(1) < 100 )
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
+        assertWarps(maps)
 
         for m in maps.values():
             m.closest_city = 'prontera'
@@ -98,6 +100,7 @@ class TestEntranceRando(unittest.TestCase):
         self.assertTrue( shuffle_world(999) < 100 )
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
+        assertWarps(maps)
 
     def test_matrix(self):
         m = Matrix(4, 3)

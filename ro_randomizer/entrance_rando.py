@@ -36,6 +36,7 @@ def entrance_rando():
             if file.endswith('.txt'):
                 map_scripts[file] = MapScript(file)
 
+    estimate_warp_offsets()
     estimate_positions(settings['location_anchors'])
     for m in maps.values():
         m.original_position = m.position
@@ -43,6 +44,8 @@ def entrance_rando():
             notice("map missing position:", m.name, ',', m)
         elif m.type == MapTypes.CITY:
             debug(m)
+
+    assertWarps(maps)
 
     notice(maps['morocc'])
     debug(world_to_string())
@@ -71,6 +74,9 @@ def shuffle_world(seed):
         good = try_shuffle_world(seed, i)
         i += 1
     info('shuffle_world(', seed, ') took', i, 'attempts')
+
+    # TODO: tie up one-way connections where the other side has toMap is None?
+    assertWarps(maps)
 
     return i
 
@@ -205,3 +211,25 @@ def write_warps(maps, map_scripts, output_path):
         if m.script:
             m.script.write(output_path)
 
+
+def assertWarps(maps):
+    for m in maps.values():
+        if m.type == MapTypes.INDOORS or m.conns_in == 0:
+            continue
+        for w in m.warps:
+            if not w.toMap:
+                continue
+            if w.inPos == w.fromPos:
+                warning('\nassertWarps found w.inPos == w.fromPos:', m, w)
+            good = False
+            m2 = maps[w.toMap]
+            if len(m2.warps) == 0:
+                continue
+            for w2 in m2.warps:
+                if not w2.toMap:
+                    continue
+                if w.toMap == w2.map and w.map == w2.toMap:
+                    good = True
+            if not good:
+                warning('\nassertWarps warning in map:', m, '\n\twarp:', w, '\n\ttoMap:', m2, '\n\ttoMap.warps:', m2.warps)
+    #
