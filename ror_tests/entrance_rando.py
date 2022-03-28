@@ -1,4 +1,3 @@
-from pydantic import ColorError
 from ro_randomizer.entrance_rando import *
 from ror_tests.base_tests import *
 import unittest
