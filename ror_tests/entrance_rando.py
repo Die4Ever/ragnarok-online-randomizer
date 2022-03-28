@@ -26,6 +26,14 @@ class TestEntranceRando(unittest.TestCase):
         set_closest_cities()
         debug(world_to_string(16, 12))
 
+    def setUp(self):
+        print('----')
+        pass
+
+    def tearDown(self):
+        print('\n===================\n'+ str(self).partition(' (')[0] +' result: ', sep='')
+        pass
+
     def test_closest_cities(self):
         self.assertEqual(maps['prontera'].closest_city, 'prontera')
         self.assertIsNotNone(maps['north'].closest_city)
@@ -77,12 +85,18 @@ class TestEntranceRando(unittest.TestCase):
         for m in maps.values():
             m.closest_city = 'prontera'
             m.position = None
-        self.assertTrue( shuffle_biome(maps['prontera'], 1)[1] < 10 )
+        (grid, attempts) = shuffle_biome(maps['prontera'], 1)
+        self.assertIsNotNone(grid)
+        self.assertTrue( attempts < 10 )
+        self.verifyGrid(grid)
 
         for m in maps.values():
             m.closest_city = 'prontera'
             m.position = None
-        self.assertTrue( shuffle_biome(maps['prontera'], 999)[1] < 10 )
+        (grid, attempts) = shuffle_biome(maps['prontera'], 999)
+        self.assertIsNotNone(grid)
+        self.assertTrue( attempts < 10 )
+        self.verifyGrid(grid)
 
     def test_shuffle_world(self):
         anchors = get_settings()['location_anchors']
@@ -92,7 +106,8 @@ class TestEntranceRando(unittest.TestCase):
         self.assertTrue( shuffle_world(1) < 100 )
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
-        assertWarps(maps)
+        self.printWorld(maps)
+        assertWarps(maps, True)
 
         for m in maps.values():
             m.closest_city = 'prontera'
@@ -100,23 +115,59 @@ class TestEntranceRando(unittest.TestCase):
         self.assertTrue( shuffle_world(999) < 100 )
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
-        assertWarps(maps)
+        self.printWorld(maps)
+        assertWarps(maps, True)
 
     def test_matrix(self):
         m = Matrix(4, 3)
-        debug("created matrix", m)
+        debug("created matrix")
         self.assertTrue( m.ContainsPoint(Point(0,0)) )
         self.assertTrue( m.ContainsPoint(Point(3,2)) )
         self.assertFalse( m.ContainsPoint(Point(-1,0)) )
         self.assertFalse( m.ContainsPoint(Point(0,-1)) )
         self.assertFalse( m.ContainsPoint(Point(4,0)) )
         self.assertFalse( m.ContainsPoint(Point(0,3)) )
-        m[3][2] = 1
+        m[0][0] = 'L'
+        m[0][1] = 'L'
+        m[0][2] = 'L'
+        m[3][0] = 'R'
+        m[3][1] = 'R'
+        m[3][2] = 'R'
+        debug(repr(m))
+
+    def test_shuffled_grid(self):
+        grid = ShuffledGrid(random.Random(1), ['C', 'C', 'C'])
+        grid.grid[0][0] = 'L'
+        grid.grid[0][1] = 'L'
+        grid.grid[0][2] = 'L'
+        grid.grid[2][0] = 'R'
+        grid.grid[2][1] = 'R'
+        grid.grid[2][2] = 'R'
+        debug(repr(grid))
+        left = grid.get_items_on_edge(IntPoint(-1, 0))
+        right = grid.get_items_on_edge(IntPoint(1, 0))
+        self.assertEqual(left, ['L', 'L', 'L'])
+        self.assertEqual(right, ['R', 'R', 'R'])
+        top = grid.get_items_on_edge(IntPoint(0, -1))
+        self.assertCountEqual(top, ['L', 'R'])
 
     def checkPos(self, map, x, y):
         info('checkPos:', maps[map], 'vs', (x, y))
         self.assertEqual(maps[map].position.x, x)
         self.assertEqual(maps[map].position.y, y)
+
+    def printWorld(self, maps):
+        for m in maps.values():
+            print(m)
+            for w in m.warps:
+                print('\t', w)
+            self.assertIsNotNone(m.position)
+        print('')
+
+    def verifyGrid(self, grid):
+        info('verifying grid...')
+        info(repr(grid))
+        self.assertEqual(grid.shuffled_items, [])
 
 
 

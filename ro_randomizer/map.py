@@ -29,10 +29,12 @@ class Warp():
         self.inPos = self.inPos.subtract(self.fromPos)
 
     def __repr__(self):
-        toMap = self.toMap
-        if not toMap:
-            toMap = 'None'
-        return self.map + " -> " + toMap + ' ('+self.statement.args[3][2]+')'
+        to = self.toMap
+        if not to:
+            to = 'None'
+        else:
+            to += ' ' + str(self.toPos)
+        return self.map + ' ' + str(self.fromPos) + ' -> ' + to + ' ('+self.statement.args[3][2]+')'
 
 
 class Map():
@@ -61,6 +63,9 @@ class Map():
 
     def __repr__(self):
         return self.name + '('+self.type.name+') ' + repr(self.position) + ', ' + str(self.size) + ', ' + str(len(self.warps)) + ' warps out, ' + str(self.conns_in) + ' warps in'
+
+    def __str__(self):
+        return self.name
 
     def get_warps_on_side(self, offset):
         # TODO: exclude warps to maps that don't have any warps of their own? but how will that work when I've set toMap to None?

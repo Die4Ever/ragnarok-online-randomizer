@@ -212,12 +212,14 @@ def write_warps(maps, map_scripts, output_path):
             m.script.write(output_path)
 
 
-def assertWarps(maps):
+def assertWarps(maps, error=False):
     for m in maps.values():
         if m.type == MapTypes.INDOORS or m.conns_in == 0:
             continue
         for w in m.warps:
             if not w.toMap:
+                if error:
+                    raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w))
                 continue
             if w.inPos == w.fromPos:
                 warning('\nassertWarps found w.inPos == w.fromPos:', m, w)
@@ -226,10 +228,10 @@ def assertWarps(maps):
             if len(m2.warps) == 0:
                 continue
             for w2 in m2.warps:
-                if not w2.toMap:
-                    continue
                 if w.toMap == w2.map and w.map == w2.toMap:
                     good = True
             if not good:
                 warning('\nassertWarps warning in map:', m, '\n\twarp:', w, '\n\ttoMap:', m2, '\n\ttoMap.warps:', m2.warps)
+                if error:
+                    raise Exception('assertWarps with error enabled, found 1 way connection: '+str(m)+' '+str(w))
     #

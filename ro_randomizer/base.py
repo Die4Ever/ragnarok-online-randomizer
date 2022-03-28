@@ -206,6 +206,33 @@ class Matrix(list):
     def ContainsPoint(self, p):
         return p.x >= 0 and p.y >= 0 and p.x < len(self) and p.y < len(self[0])
 
+    def __repr__(self):
+        ret = type(self).__name__ + ' [\n'
+        for y in range(len(self[0])):
+            for x in range(len(self)):
+                i = self[x][y]
+                s = str(i)
+                if i is None:
+                    s = ''
+                s = s[:7].center(7, ' ')
+                ret += s +','
+            ret += '\n'
+        return ret + ']'
+
+    def __str__(self):
+        ret = type(self).__name__ + ' ['
+        for y in range(len(self[0])):
+            ret += '['
+            for x in range(len(self)):
+                i = self[x][y]
+                s = str(i)
+                if i is None:
+                    s = ''
+                s = s[:5].center(5, ' ')
+                ret += s +','
+            ret += ']'
+        return ret + ']'
+
 
 moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
 corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
@@ -240,6 +267,12 @@ class ShuffledGrid:
     def connect_items(self, item1, item2, move, spot):
         # base class placeholder
         return 1
+
+    def __str__(self):
+        return type(self).__name__ + ', ' + str(len(self.items)) + ' items, ' + str(self.grid)
+
+    def __repr__(self):
+        return type(self).__name__ + ', ' + str(len(self.items)) + ' items, ' + repr(self.grid)
 
     def _get_items_on_line(self, offset, start, slope):
         items = []
