@@ -179,6 +179,9 @@ def write_warps(maps, map_scripts, output_path):
             w.statement.args[3][3] = w.toPos.x
             w.statement.args[3][4] = w.toPos.y
 
+    if get_settings().get('dry_run'):
+        warning('dry_run is enabled, not writing any files')
+        return
 
     if exists_dir(output_path):
         if not get_settings().get('unattended'):

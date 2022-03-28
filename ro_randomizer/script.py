@@ -36,7 +36,7 @@ class CodeTree(list):
             super().append(item)
 
     def __str__(self):
-        return self.__name__ + '(' + str(len(self)) + ')'
+        return type(self).__name__ + '(' + str(len(self)) + ')'
 
     def __repr__(self):
         ret = ''
@@ -60,7 +60,7 @@ class ROScript():
         return self.file + ' ' + str(self.root)
 
     def __repr__(self):
-        return '/* randomized from ' + self.file + '*/\n' + repr(self.root)
+        return '/* randomized from ' + self.file + ' */\n' + repr(self.root)
 
     def write(self, output_path):
         path = output_path + self.folder + '/'
@@ -89,7 +89,7 @@ def parse_script_line(content, sub, start_idx, end_idx):
     if len(args) > 1 and len(args[1]) > 0:
         type = args[1][0]
         if remaining:
-            args.append([separator+remaining])
+            args[-1][-1] += separator+remaining
 
     if not type:
         return None
@@ -113,6 +113,7 @@ def parse_script(content, sub=False, idx=-1):
         if in_line_comment:
             if c == '\n':
                 in_line_comment = False
+                buf += c
             continue
         if in_block_comment:
             if prev == '*' and c == '/':
@@ -124,23 +125,16 @@ def parse_script(content, sub=False, idx=-1):
             in_line_comment = True
             buf = buf[:-1]
             buf = buf.strip()
-            t = parse_script_line(buf, sub, start_idx, idx-2)
-            tree.append(t)
-            buf = ''
-            start_idx = idx+1
             continue
 
         if c == '{':
             in_curly_brace += 1
-            if in_curly_brace == 1:
-                buf = ''
-                start_idx = idx+1
-                continue
         elif c == '}':
             in_curly_brace -= 1
             if in_curly_brace == 0:
+                buf += c
                 buf = buf.strip()
-                t = parse_script(buf, True, start_idx)
+                t = parse_script_line(buf, sub, start_idx, idx)
                 tree.append(t)
                 buf = ''
                 start_idx = idx+1

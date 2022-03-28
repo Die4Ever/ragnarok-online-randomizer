@@ -169,10 +169,9 @@ class MapScript():
         self.name = path[-1]
         self.folder = path[-2]
         debug(self.__dict__)
-        self.script = None
+        self.script = ROScript(file)
         if self.folder == 'other' or self.folder == 'warps':
             return
-        self.script = ROScript(file)
         for s in self.script.root:
             if s.type in ['warp','warp2']:
                 new_warp(s, self.folder)
