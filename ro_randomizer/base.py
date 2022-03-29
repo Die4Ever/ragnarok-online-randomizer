@@ -366,7 +366,8 @@ class ShuffledGrid:
             spot = self.get_empty_spot(rand)
             # find an item to put in the spot
             self.put_random_item_in_spot(spot)
-        debug(type(self).__name__ + '.fill took '+str(attempts)+' attempts')
+        if attempts > 100:
+            debug(type(self).__name__ + '.fill took '+str(attempts)+' attempts')
         return True
 
     def finalize_connections(self):

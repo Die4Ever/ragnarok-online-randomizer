@@ -150,8 +150,19 @@ def try_connect_world(rand, biomes):
         return None
 
     # TODO: ensure can navigate from all/most areas to the city
+    goods = 0
+    bads = 0
     for m in maps.values():
         m.position = None
+        for w in m.warps:
+            if w.toMap is None:
+                bads += 1
+            else:
+                goods += 1
+    info('try_connect_world check warps goods:', goods, 'bads:', bads)
+    if bads*5 > goods:
+        return None
+
     estimate_positions(get_settings()['location_anchors'])
     goods = 0
     bads = 0
@@ -162,8 +173,8 @@ def try_connect_world(rand, biomes):
             bads += 1
         else:
             goods += 1
-    info('try_connect_world goods:', goods, 'bads:', bads)
-    if bads > goods:
+    info('try_connect_world check map positions goods:', goods, 'bads:', bads)
+    if bads*5 > goods:
         return None
     # for b in biomes:
     #     if map.type == MapTypes.CITY and map.position is None:

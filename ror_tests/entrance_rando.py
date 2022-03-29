@@ -185,7 +185,11 @@ class TestEntranceRando(BaseTestCase):
         anchors = get_settings()['location_anchors']
         for m in maps.values():
             m.position = None
-        world = try_shuffle_world(seed, 0)
+        world = None
+        for i in range(1000):
+            world = try_shuffle_world(seed, i)
+            if world:
+                break
         self.assertIsNotNone(world)
         estimate_positions(anchors)
         debug(world_to_string(16, 12))
@@ -201,9 +205,11 @@ class TestEntranceRando(BaseTestCase):
         if len(world.grid) == 1:
             debug(repr(world.grid[0][0]))
         for m in maps:
-            debug(m, m.position)
+            debug(m, m.position, 'closest_city:', m.closest_city)
             for w in m.warps:
                 debug('\t', w)
+                # TODO: I'm not sure there are non-vanilla arrangements of the test data that pass this check
+                #self.assertIsNotNone(w.toMap)
             self.assertIsNotNone(m.position)
         debug('')
 
