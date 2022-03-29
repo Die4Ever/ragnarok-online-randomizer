@@ -14,6 +14,7 @@ from enum import Enum, IntEnum
 import json
 import struct
 import cProfile, pstats
+import binascii
 
 version = '0.01'
 # shared code for all ro_randomizer modules
@@ -134,6 +135,9 @@ def exists_dir(path):
     #     print("dir already exists: " + path)
     return exists
 
+def crc32(*args):
+    s = ' '.join(map(str, args))
+    return binascii.crc32(s.encode('utf8'))
 
 # regex convenience
 def rg(name, pattern='[^,\t]+'):

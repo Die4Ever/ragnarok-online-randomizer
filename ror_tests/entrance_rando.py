@@ -178,8 +178,8 @@ class TestEntranceRando(BaseTestCase):
         return grid
 
     def test_shuffle_world(self):
-        self.shuffle_world(1)
-        self.shuffle_world(999)
+        self.shuffle_world(2)
+        self.shuffle_world(100)
 
     def shuffle_world(self, seed):
         anchors = get_settings()['location_anchors']

@@ -102,7 +102,7 @@ class WorldGrid(ShuffledGrid):
         #    for m2 in edge2:
         #        linked += biome1.connect_warps(m1.warps, m2.warps, move, m1.size)
 
-        # desperately link anything
+        # desperately link anything? or maybe I should link within the biome more?
         for x1 in biome1.grid:
             for m1 in x1:
                 if m1 is None:
@@ -117,15 +117,5 @@ class WorldGrid(ShuffledGrid):
     def get_finalize_connections_moves(self):
         # we also want double steps and knight's moves at the end of the list, just to fill in any unlinked warps
         return (moves + corners + knights)
-        # double steps
-        # for m in (moves + corners):
-        #    ret.append(m.multiply_scalar(2))
-        # knight's moves
-        # for m in moves:
-        #     for c in corners:
-        #         new = m.add(c)
-        #         if new not in ret:
-        #             ret.append(new)
-        # return ret
 
 

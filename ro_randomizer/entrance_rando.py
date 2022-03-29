@@ -104,7 +104,7 @@ def shuffle_biome(city, seed):
         if i > 1000:
             warning('shuffle_biome(', city, ',', seed, ') failed at', i, 'attempts, original_position:', city.original_position, areas)
             return (None, i)
-        grid = try_shuffle_areas(random.Random(seed + i), areas)
+        grid = try_shuffle_areas(random.Random(crc32('shuffle_biome', seed, i)), areas)
         i += 1
 
     # success!
@@ -192,7 +192,7 @@ def try_shuffle_world(seed, attempt):
     for c in maps.values():
         if c.type != MapTypes.CITY or c.closest_city != c.name or c.original_position is None:
             continue
-        (biome, attempts) = shuffle_biome(c, seed + attempt * 1000007)
+        (biome, attempts) = shuffle_biome(c, crc32('try_shuffle_world', seed, attempt))
         if not biome:
             return None
         biomes.append(biome)
@@ -201,7 +201,7 @@ def try_shuffle_world(seed, attempt):
     info('connecting world together, biomes:', len(biomes))
     world = None
     for i in range(100):
-        world = try_connect_world(random.Random(seed + attempt * 100007 + i), biomes)
+        world = try_connect_world(random.Random(crc32('try_connect_world', seed, attempt, i)), biomes)
         if world:
             break
 
