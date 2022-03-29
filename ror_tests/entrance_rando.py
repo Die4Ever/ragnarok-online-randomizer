@@ -48,6 +48,15 @@ class TestEntranceRando(BaseTestCase):
         self.lock_in_data_set()
         set_loglevel(old_loglevel)
 
+    def data_set3(self):
+        ro_randomizer.base.maps.clear()
+        old_loglevel = get_loglevel()
+        set_loglevel(DebugLevels.SILENT)
+        warps('prontera', 32, 64, 'n', 32, 0)
+        warps('prontera', 32, 0, 's', 32, 64)
+        self.lock_in_data_set()
+        set_loglevel(old_loglevel)
+
 
     def test_closest_cities(self):
         self.assertEqual(maps['prontera'].closest_city, 'prontera')
@@ -64,15 +73,15 @@ class TestEntranceRando(BaseTestCase):
         m3 = maps['payon']
 
         grid = ro_randomizer.world_map_grids.MapsGrid(random.Random(1), [m1, m2, m3])
-        self.assertTrue( grid.items_can_connect(m1, m2, Point(0, -100)) )
-        self.assertFalse( grid.items_can_connect(m1, m3, Point(0, -100)) )
-        self.assertTrue( grid.items_can_connect(m1, m3, Point(-100, 100)) )
+        self.assertTrue( grid.items_can_connect(m1, m2, Point(0, 1)) )
+        self.assertFalse( grid.items_can_connect(m1, m3, Point(0, 1)) )
+        self.assertTrue( grid.items_can_connect(m1, m3, Point(1, -1)) )
 
         m = grid.grid[1][1]
         self.assertEqual(m, maps['prontera'])
-        m = grid.put_random_item_in_spot(IntPoint(1, 2))
-        self.assertEqual(m, maps['payon'])
         m = grid.put_random_item_in_spot(IntPoint(1, 0))
+        self.assertEqual(m, maps['payon'])
+        m = grid.put_random_item_in_spot(IntPoint(1, 2))
         self.assertEqual(m, maps['aldebaran'])
 
         m4 = maps['nw']
@@ -82,18 +91,18 @@ class TestEntranceRando(BaseTestCase):
         grid.shuffled_items.append(m5)
         grid.shuffled_items.append(m6)
         self.assertCountEqual(grid.shuffled_items, [m5, m4, m6])
-        grid.put_random_item_in_spot(IntPoint(2, 0))
-        grid.put_random_item_in_spot(IntPoint(2, 1))
-        grid.put_random_item_in_spot(IntPoint(2, 2))
+        grid.put_random_item_in_spot(IntPoint(0, 2))
+        grid.put_random_item_in_spot(IntPoint(0, 1))
+        grid.put_random_item_in_spot(IntPoint(0, 0))
         self.assertCountEqual(grid.shuffled_items, [m5])
 
-        right_edge = grid.get_items_on_edge(Point(1, 0))
+        right_edge = grid.get_items_on_edge(Point(-1, 0))
         self.assertCountEqual(right_edge, [m4, m6])
 
-        bottom_edge = grid.get_items_on_edge(Point(0, -1))
+        bottom_edge = grid.get_items_on_edge(Point(0, 1))
         self.assertCountEqual(bottom_edge, [m2, m4])
 
-        top_edge = grid.get_items_on_edge(Point(0, 1))
+        top_edge = grid.get_items_on_edge(Point(0, -1))
         self.assertCountEqual(top_edge, [m3])
 
     def test_shuffle_biome1(self):
@@ -122,14 +131,18 @@ class TestEntranceRando(BaseTestCase):
 
     def test_shuffle_biome2(self):
         self.data_set2()
-        info(repr(maps['prontera'].warps))
         biome = self.shuffle_biome('prontera', maps.values(), 1)
-        info(repr(biome.grid[0][1].warps))
-        info(repr(biome.grid[1][1].warps))
-        # TODO: flip these coordinates...
         self.assertEqual(biome.grid[1][1].name, 'prontera')
-        self.assertEqual(biome.grid[2][1].name, 'w')
-        self.assertEqual(biome.grid[0][1].name, 'e')
+        self.assertEqual(biome.grid[0][1].name, 'w')
+        self.assertEqual(biome.grid[2][1].name, 'e')
+
+
+    def test_shuffle_biome3(self):
+        self.data_set3()
+        biome = self.shuffle_biome('prontera', maps.values(), 1)
+        self.assertEqual(biome.grid[1][1].name, 'prontera')
+        self.assertEqual(biome.grid[1][2].name, 'n')
+        self.assertEqual(biome.grid[1][0].name, 's')
 
 
     def test_Aget_warps_on_side(self):

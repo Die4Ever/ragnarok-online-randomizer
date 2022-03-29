@@ -215,7 +215,7 @@ class Matrix(list):
 
     def __repr__(self):
         ret = type(self).__name__ + ' [\n'
-        for y in range(len(self[0])):
+        for y in range(len(self[0])-1, -1, -1):
             for x in range(len(self)):
                 i = self[x][y]
                 s = str(i)
@@ -228,7 +228,7 @@ class Matrix(list):
 
     def __str__(self):
         ret = type(self).__name__ + ' ['
-        for y in range(len(self[0])):
+        for y in range(len(self[0])-1, -1, -1):
             ret += '['
             for x in range(len(self)):
                 i = self[x][y]

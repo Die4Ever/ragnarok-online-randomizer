@@ -8,8 +8,8 @@ class MapsGrid(ShuffledGrid):
         if len(m1.warps) < 1 or len(m2.warps) < 1:
             warning('maps_can_connect failed, len('+m1.name+'.warps):', len(m1.warps), ', len('+m2.name+'.warps):', len(m2.warps) )
 
-        num1 = len(m1.get_warps_on_side(move.negative()))
-        num2 = len(m2.get_warps_on_side(move))
+        num1 = len(m1.get_warps_on_side(move))
+        num2 = len(m2.get_warps_on_side(move.negative()))
 
         # do we want to also return num1 and num2?
         if num1 > 0 and num2 > 0:
@@ -27,8 +27,8 @@ class MapsGrid(ShuffledGrid):
                     w.toMap = None
 
     def connect_items(self, map1, map2, move, spot):
-        warps1 = map1.get_warps_on_side(move.negative())
-        warps2 = map2.get_warps_on_side(move)
+        warps1 = map1.get_warps_on_side(move)
+        warps2 = map2.get_warps_on_side(move.negative())
         offset = move.multiply(map1.size)
         linked = 0
         # for each warps1, find the nearest available warps2 and link them
