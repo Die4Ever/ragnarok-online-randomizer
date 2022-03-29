@@ -23,11 +23,12 @@ class Warp():
         self.toPos = IntPoint(s.args[3][3], s.args[3][4])
         self.inPos = None
 
-    def setDefaultInPos(self):
-        info('setDefaultInPos', self)
-        self.inPos = self.fromPos.subtract(IntPoint(32, 32)).multiply_scalar(10)
-        self.inPos.clamp(IntPoint(-4, -4), IntPoint(4, 4))
-        self.inPos = self.inPos.subtract(self.fromPos)
+    def setDefaultInPos(self, map):
+        center = map.size.multiply_scalar(0.5)
+        offset = self.fromPos.subtract(center).multiply_scalar(10)
+        offset.clamp(IntPoint(-4, -4), IntPoint(4, 4))
+        self.inPos = self.fromPos.subtract(offset)
+        info('setDefaultInPos', self, self.inPos)
 
     def __repr__(self):
         to = self.toMap
@@ -80,7 +81,7 @@ class Map():
         center = IntPoint(self.size.x / 2, self.size.y / 2)
         warps = []
         for w in self.warps:
-            if (w.fromPos.x - center.x) * cmpX >= 0 and (w.fromPos.y - center.y) * cmpY >= 0:
+            if (w.fromPos.x - center.x - cmpX) * cmpX >= 0 and (w.fromPos.y - center.y - cmpY) * cmpY >= 0:
                 warps.append(w)
         if len(warps) == 0:
             trace("get_num_warps_on_side(", self.name, ", ", offset, "): 0 / ", len(self.warps))
@@ -157,7 +158,7 @@ def estimate_warp_offsets():
     for m in maps.values():
         for w in m.warps:
             if w.inPos is None:
-                w.setDefaultInPos()
+                w.setDefaultInPos(m)
 
 
 def set_closest_cities():
@@ -294,7 +295,7 @@ def world_to_string(width=80, height=50):
     for m in maps.values():
         if m.position is not None:
             minp.minimize(m.position)
-            maxp.maximize(m.position)
+            maxp.maximize(m.position.add(m.size))
             for w in m.warps:
                 p = m.position.add(w.fromPos)
                 minp.minimize(p)

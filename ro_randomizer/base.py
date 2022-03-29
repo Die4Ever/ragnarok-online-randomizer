@@ -38,6 +38,12 @@ class DebugLevels(IntEnum):
     TRACE = 4
 
 loglevel = DebugLevels.INFO
+
+def get_loglevel():
+    global loglevel
+    return loglevel
+
+
 def set_loglevel(new_loglevel):
     global loglevel
     assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'

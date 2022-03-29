@@ -3,11 +3,11 @@ import unittest
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
-        print(GREENCOLOR+'----'+ENDCOLOR)
+        info(GREENCOLOR+'----'+ENDCOLOR)
         pass
 
     def tearDown(self):
-        print('\n'+GREENCOLOR+ str(self).partition(' (')[0] +' result: '+ENDCOLOR, sep='')
+        info('\n'+GREENCOLOR+ str(self).partition(' (')[0] +' result: '+ENDCOLOR, sep='')
         pass
 
 

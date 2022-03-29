@@ -3,10 +3,27 @@ from ror_tests.base_tests import *
 import unittest
 
 class TestEntranceRando(BaseTestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
+        super().setUp()
+        self.data_set1()
+
+    def lock_in_data_set(self):
+        estimate_warp_offsets()
+        estimate_positions(get_settings()['location_anchors'])
+        for m in maps.values():
+            m.original_position = m.position
+            for w in m.warps:
+                w.setDefaultInPos(m)
+
+        set_closest_cities()
+
+
+    def data_set1(self):
         # lower numbers are SW for these tests
         # cities first so they get marked as cities
+        ro_randomizer.base.maps.clear()
+        old_loglevel = get_loglevel()
+        set_loglevel(DebugLevels.SILENT)
         set_settings({ 'location_anchors': [{'map': 'prontera', 'x': 0, 'y': 0}], 'ignore_maps': []})
         warps('prontera', 50, 100, 'north', 32, 0)
         warps('aldebaran', 32, 0, 'north', 32, 64)
@@ -19,16 +36,18 @@ class TestEntranceRando(BaseTestCase):
         warps('ne', 0, 64, 'aldebaran', 64, 0)
 
         warps('prontera', 100, 0, 'se', 0, 64)
+        self.lock_in_data_set()
+        set_loglevel(old_loglevel)
 
-        estimate_warp_offsets()
-        estimate_positions([{'map': 'prontera', 'x': 0, 'y': 0}])
-        for m in maps.values():
-            m.original_position = m.position
-            for w in m.warps:
-                w.setDefaultInPos()
+    def data_set2(self):
+        ro_randomizer.base.maps.clear()
+        old_loglevel = get_loglevel()
+        set_loglevel(DebugLevels.SILENT)
+        warps('prontera', 0, 32, 'w', 64, 32)
+        warps('prontera', 64, 32, 'e', 0, 32)
+        self.lock_in_data_set()
+        set_loglevel(old_loglevel)
 
-        set_closest_cities()
-        debug(world_to_string(16, 12))
 
     def test_closest_cities(self):
         self.assertEqual(maps['prontera'].closest_city, 'prontera')
@@ -77,7 +96,7 @@ class TestEntranceRando(BaseTestCase):
         top_edge = grid.get_items_on_edge(Point(0, 1))
         self.assertCountEqual(top_edge, [m3])
 
-    def test_shuffle_biome(self):
+    def test_shuffle_biome1(self):
         anchors = get_settings()['location_anchors']
 
         small_biome = [maps['prontera'], maps['north']]
@@ -99,6 +118,31 @@ class TestEntranceRando(BaseTestCase):
         debug(world_to_string(16, 12))
         self.printWorld(maps.values(), grid)
         assertWarps(maps, True)
+
+
+    def test_shuffle_biome2(self):
+        self.data_set2()
+        info(repr(maps['prontera'].warps))
+        biome = self.shuffle_biome('prontera', maps.values(), 1)
+        info(repr(biome.grid[0][1].warps))
+        info(repr(biome.grid[1][1].warps))
+        # TODO: flip these coordinates...
+        self.assertEqual(biome.grid[1][1].name, 'prontera')
+        self.assertEqual(biome.grid[2][1].name, 'w')
+        self.assertEqual(biome.grid[0][1].name, 'e')
+
+
+    def test_Aget_warps_on_side(self):
+        self.data_set2()
+        w = maps['w'].get_warps_on_side(IntPoint(1,0))
+        self.assertEqual(str(w[0].toMap), 'prontera')
+        w = maps['w'].get_warps_on_side(IntPoint(-1,0))
+        self.assertEqual(len(w), 0)
+        w = maps['w'].get_warps_on_side(IntPoint(0,-1))
+        self.assertEqual(len(w), 0)
+        w = maps['w'].get_warps_on_side(IntPoint(0,1))
+        self.assertEqual(len(w), 0)
+
 
     def shuffle_biome(self, city, biome_maps, seed):
         info('testing shuffle_biome '+city+' with '+str(len(biome_maps))+' maps')
@@ -136,8 +180,8 @@ class TestEntranceRando(BaseTestCase):
 
     def checkPos(self, map, x, y):
         info('checkPos:', maps[map], 'vs', (x, y))
-        self.assertEqual(maps[map].position.x, x)
-        self.assertEqual(maps[map].position.y, y)
+        self.assertAlmostEqual(maps[map].position.x, x)
+        self.assertAlmostEqual(maps[map].position.y, y)
 
     def printWorld(self, maps, world):
         if len(world.grid) == 1:
