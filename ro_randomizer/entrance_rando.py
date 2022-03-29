@@ -160,8 +160,10 @@ def try_connect_world(rand, biomes):
             else:
                 goods += 1
     info('try_connect_world check warps goods:', goods, 'bads:', bads)
-    if bads*5 > goods:
+    if bads*10 > goods:
         return None
+
+    # TODO: should try to fill in more warps here? or before the check?
 
     estimate_positions(get_settings()['location_anchors'])
     goods = 0
@@ -174,7 +176,7 @@ def try_connect_world(rand, biomes):
         else:
             goods += 1
     info('try_connect_world check map positions goods:', goods, 'bads:', bads)
-    if bads*5 > goods:
+    if bads*10 > goods:
         return None
     # for b in biomes:
     #     if map.type == MapTypes.CITY and map.position is None:

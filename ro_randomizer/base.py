@@ -243,7 +243,9 @@ class Matrix(list):
 
 moves = (IntPoint(-1,0), IntPoint(0,-1), IntPoint(1,0), IntPoint(0,1))
 corners = (IntPoint(-1,-1), IntPoint(-1,1), IntPoint(1,-1), IntPoint(1,1))
-
+double_moves = (IntPoint(-2,0), IntPoint(0,-2), IntPoint(2,0), IntPoint(0,2))
+double_corners = (IntPoint(-2,-2), IntPoint(-2,2), IntPoint(2,-2), IntPoint(2,2))
+knights = (IntPoint(-2, -1), IntPoint(-2, 1), IntPoint(-1, -2), IntPoint(1, -2), IntPoint(2, -1), IntPoint(2, 1), IntPoint(-1, 2), IntPoint(1, 2))
 
 class ShuffledGrid:
     def __init__(self, rand, items):
@@ -263,6 +265,8 @@ class ShuffledGrid:
         self.grid[self.center.x][self.center.y] = self.shuffled_items.pop(0)
         attempts = 0
 
+    ##################################
+    # for overriding in subclasses
     def items_can_connect(self, item, other, move):
         # base class placeholder
         return True
@@ -274,6 +278,10 @@ class ShuffledGrid:
     def connect_items(self, item1, item2, move, spot):
         # base class placeholder
         return 1
+
+    def get_finalize_connections_moves(self):
+        return (moves + corners)
+    ##################################
 
     def __str__(self):
         return type(self).__name__ + ', ' + str(len(self.items)) + ' items, ' + str(self.grid)
@@ -382,7 +390,7 @@ class ShuffledGrid:
                 if item1 is None:
                     continue
                 # loop through cardinal moves first and then the corners
-                for move in (moves + corners):
+                for move in self.get_finalize_connections_moves():
                     spot = IntPoint(x + move.x, y + move.y)
                     if not self.grid.ContainsPoint(spot):
                         continue

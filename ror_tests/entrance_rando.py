@@ -178,7 +178,7 @@ class TestEntranceRando(BaseTestCase):
         return grid
 
     def test_shuffle_world(self):
-        self.shuffle_world(2)
+        self.shuffle_world(1)
         self.shuffle_world(999)
 
     def shuffle_world(self, seed):
@@ -186,7 +186,7 @@ class TestEntranceRando(BaseTestCase):
         for m in maps.values():
             m.position = None
         world = None
-        for i in range(1000):
+        for i in range(10):
             world = try_shuffle_world(seed, i)
             if world:
                 break
@@ -195,6 +195,7 @@ class TestEntranceRando(BaseTestCase):
         debug(world_to_string(16, 12))
         self.printWorld(maps.values(), world)
         assertWarps(maps, True)
+        info(GREENCOLOR+'shuffle_world('+str(seed)+') completed in '+str(i)+' attempts'+ENDCOLOR)
 
     def checkPos(self, map, x, y):
         info('checkPos:', maps[map], 'vs', (x, y))

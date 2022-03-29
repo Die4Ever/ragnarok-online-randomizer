@@ -26,13 +26,11 @@ class MapsGrid(ShuffledGrid):
                 if w.toMap != w.map and to and to.type != MapTypes.INDOORS:
                     w.toMap = None
 
-    def connect_items(self, map1, map2, move, spot):
-        warps1 = map1.get_warps_on_side(move)
-        warps2 = map2.get_warps_on_side(move.negative())
-        offset = move.multiply(map1.size)
+    def connect_warps(self, warps1, warps2, move, map1size):
+        offset = move.multiply(map1size)
         linked = 0
         # for each warps1, find the nearest available warps2 and link them
-        trace('connect_items(', map1, ', ', map2, ') warps1: ', len(warps1), ', warps2: ', len(warps2))
+        trace('connect_warps(', move, ') warps1: ', len(warps1), ', warps2: ', len(warps2))
         for w1 in warps1:
             if w1.toMap is not None:
                 continue
@@ -51,8 +49,14 @@ class MapsGrid(ShuffledGrid):
                 w2.toMap = w1.map
                 w2.toPos = w1.inPos
                 linked += 1
-                trace('connect_items linked', w1, ',', w2)
+                trace('connect_warps linked', w1, ',', w2)
         return linked
+
+
+    def connect_items(self, map1, map2, move, spot):
+        warps1 = map1.get_warps_on_side(move)
+        warps2 = map2.get_warps_on_side(move.negative())
+        return self.connect_warps(warps1, warps2, move, map1.size)
 
 
 class WorldGrid(ShuffledGrid):
@@ -90,8 +94,38 @@ class WorldGrid(ShuffledGrid):
         edge1 = biome1.get_items_on_edge(move)
         edge2 = biome2.get_items_on_edge(move.negative())
         linked = 0
-        for e1 in edge1:
-            for e2 in edge2:
-                linked += biome1.connect_items(e1, e2, move, spot)
+        for m1 in edge1:
+            for m2 in edge2:
+                linked += biome1.connect_items(m1, m2, move, spot)
+
+        #for m1 in edge1:
+        #    for m2 in edge2:
+        #        linked += biome1.connect_warps(m1.warps, m2.warps, move, m1.size)
+
+        # desperately link anything
+        for x1 in biome1.grid:
+            for m1 in x1:
+                if m1 is None:
+                    continue
+                for x2 in biome2.grid:
+                    for m2 in x2:
+                        if m2 is None:
+                            continue
+                        linked += biome1.connect_items(m1, m2, move, spot)
         return linked
+
+    def get_finalize_connections_moves(self):
+        # we also want double steps and knight's moves at the end of the list, just to fill in any unlinked warps
+        return (moves + corners + knights)
+        # double steps
+        # for m in (moves + corners):
+        #    ret.append(m.multiply_scalar(2))
+        # knight's moves
+        # for m in moves:
+        #     for c in corners:
+        #         new = m.add(c)
+        #         if new not in ret:
+        #             ret.append(new)
+        # return ret
+
 
