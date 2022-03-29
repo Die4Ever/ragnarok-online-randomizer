@@ -214,14 +214,16 @@ def try_shuffle_world(seed, attempt):
 def write_warps(maps, map_scripts, output_path):
     for m in maps.values():
         for w in m.warps:
-            oldTo = w.statement.args[3][2]
+            statement = w.statements[0]
+            oldTo = statement.args[3][2]
             oldToMap = maps.get(oldTo)
             if oldToMap and oldToMap.type in [MapTypes.IGNORE, MapTypes.INDOORS]:
                 w.toMap = oldTo
-                w.toPos = IntPoint(w.statement.args[3][3], w.statement.args[3][4])
-            w.statement.args[3][2] = w.toMap
-            w.statement.args[3][3] = w.toPos.x
-            w.statement.args[3][4] = w.toPos.y
+                w.toPos = IntPoint(statement.args[3][3], statement.args[3][4])
+            for statement in w.statements:
+                statement.args[3][2] = w.toMap
+                statement.args[3][3] = w.toPos.x
+                statement.args[3][4] = w.toPos.y
 
     if get_settings().get('dry_run'):
         warning('dry_run is enabled, not writing any files')
@@ -256,9 +258,9 @@ def assertWarps(maps, error=False):
             continue
         good = False
         for w in m.warps:
-            if not w.toMap and not w.statement.args[3][2]:
+            if not w.toMap and not w.statements[0].args[3][2]:
                 if error:
-                    raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w)+', '+repr(w.statement))
+                    raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w)+', '+repr(w.statements[0]))
                 continue
             if w.inPos == w.fromPos:
                 warning('\nassertWarps found w.inPos == w.fromPos:', m, w)

@@ -13,7 +13,7 @@ class MapTypes(Enum):
 
 class Warp():
     def __init__(self, s):
-        self.statement = s
+        self.statements = [s]
         self.map = s.args[0][0]
         self.fromPos = IntPoint(s.args[0][1], s.args[0][2])
         self.facing = int(s.args[0][3])
@@ -36,7 +36,7 @@ class Warp():
             to = 'None'
         else:
             to += ' ' + str(self.toPos)
-        return self.map + ' ' + str(self.fromPos) + ' -> ' + to + ' ('+self.statement.args[3][2]+')'
+        return self.map + ' ' + str(self.fromPos) + ' -> ' + to + ' ('+self.statements[0].args[3][2]+')'
 
 
 class Map():
@@ -63,6 +63,13 @@ class Map():
 
     def append(self, warp):
         global maps
+        for w in self.warps:
+            if w.fromPos == warp.fromPos:
+                if w.toMap != warp.toMap:
+                    printError(w, '\nfalse dupe\n', warp)
+                    raise Exception('false dupe')
+                w.statements.extend(warp.statements)
+                return
         self.warps.append(warp)
         self.size.maximize(warp.fromPos)
         if warp.toMap not in maps:
