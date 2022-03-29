@@ -319,7 +319,8 @@ def world_to_string(width=80, height=50):
     # then write city names (in all caps to differentiate?)
     for m in maps.values():
         if m.type == MapTypes.CITY and m.position is not None:
-            write_on_world_string(arr, m.name.upper(), m.position, off, scale)
+            center = m.position.add(m.size.multiply_scalar(0.5))
+            write_on_world_string(arr, m.name.upper(), center, off, scale)
 
     ret = "minx: {}, miny: {}, maxx: {}, maxy: {}".format(minp.x, minp.y, maxp.x, maxp.y)
     # y axis is upside-down

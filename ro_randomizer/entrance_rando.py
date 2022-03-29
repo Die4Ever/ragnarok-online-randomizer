@@ -20,8 +20,8 @@ def entrance_rando():
     global map_sizes
     settings = get_settings()
     seed = settings['seed']
-    ro_randomizer.base.maps = {}
-    ro_randomizer.base.map_sizes = {}
+    ro_randomizer.base.maps.clear()
+    ro_randomizer.base.map_sizes.clear()
     map_scripts = {}
 
     printHeader("ENTRANCE RANDO!")

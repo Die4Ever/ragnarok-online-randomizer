@@ -27,6 +27,7 @@ class TestEntranceRando(BaseTestCase):
         set_settings({ 'location_anchors': [{'map': 'prontera', 'x': 0, 'y': 0}], 'ignore_maps': []})
         warps('prontera', 50, 100, 'north', 32, 0)
         warps('aldebaran', 32, 0, 'north', 32, 64)
+        warps('aldebaran', 32, 64, 'morenorth', 32, 0)
         warps('payon', 0, 64, 'se', 64, 0)
 
         warps('prontera', 0, 100, 'nw', 64, 0)
@@ -36,6 +37,7 @@ class TestEntranceRando(BaseTestCase):
         warps('ne', 0, 64, 'aldebaran', 64, 0)
 
         warps('prontera', 100, 0, 'se', 0, 64)
+        warps('prontera', 50, 0, 'south', 32, 64)
         self.lock_in_data_set()
         set_loglevel(old_loglevel)
 
@@ -176,13 +178,12 @@ class TestEntranceRando(BaseTestCase):
         return grid
 
     def test_shuffle_world(self):
-        self.shuffle_world(1)
+        self.shuffle_world(2)
         self.shuffle_world(999)
 
     def shuffle_world(self, seed):
         anchors = get_settings()['location_anchors']
         for m in maps.values():
-            m.closest_city = 'prontera'
             m.position = None
         world = try_shuffle_world(seed, 0)
         self.assertIsNotNone(world)
