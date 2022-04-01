@@ -2,6 +2,7 @@ from ro_randomizer.base import *
 from ror_tests.base_tests import *
 from ror_tests.entrance_rando import *
 from ror_tests.script import *
+from ror_tests.mobs_rando import *
 import unittest
 
 def run_tests():

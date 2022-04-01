@@ -1,14 +1,18 @@
 {
     "inputs": {
         "sql": ["../rathena/sql-files/"],
+        "monsters": ["../rathena/db/re/mob_db.yml"],
         "mobs": ["../rathena/npc/mobs/", "../rathena/npc/re/mobs/"],
         "warps": ["../rathena/npc/warps/", "../rathena/npc/re/warps/"],
+        "skills": ["../rathena/db/re/skill_db.yml"],
         "gat": ["C:/Games/RO data/gat files/"]
     },
     "outputs": {
         "sql": "out/sql-files/",
+        "monsters": "out/db/mob_db.yml",
         "mobs": "out/npc/mobs/",
-        "warps": "out/npc/warps/"
+        "warps": "out/npc/warps/",
+        "skills": "out/db/skill_db.yml"
     },
     "unattended": false,
     "dry_run": false

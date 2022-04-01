@@ -1,5 +1,6 @@
 from ro_randomizer.base import *
 from ro_randomizer.entrance_rando import *
+from ro_randomizer.mobs_rando import *
 
 def randomize(local_settings):
     settings = local_settings
@@ -24,8 +25,8 @@ def randomize(local_settings):
 def do_rando():
     entrance_rando()
     #randomize_mobs for mob spawns according to the desired danger level of each map
-    #randomize_sql for skills/classes...
-    #randomize_config for leveling rates, item rates...
+    mobs_rando()
+    #randomize skills...
 
 
 def check_settings_config(settings):

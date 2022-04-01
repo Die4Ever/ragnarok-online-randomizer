@@ -61,6 +61,9 @@ def entrance_rando():
     write_warps(maps, map_scripts, settings['outputs']['warps'])
     # TODO:
     # mark the desired danger ratings for the lowbie routes for travelling between cities
+    rng = random.Random(crc32('random_danger', seed))
+    for m in maps.values():
+        m.danger = rng.randint(1, 100)
     #   these don't need to be optimal routes between cities
     #   lowbies don't really need to be able to reach every city easily
     #   maybe only need to test that every starting city has 1 reachable lowbie leveling zone?

@@ -55,6 +55,7 @@ class Map():
         self.position = None
         self.conns_in = 0
         self.closest_city = None
+        self.danger = 0
         try:
             self.size = map_sizes[name]
         except Exception as e:
