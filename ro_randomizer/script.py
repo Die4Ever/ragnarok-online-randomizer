@@ -47,12 +47,12 @@ class CodeTree(listget):
 
 class ROScript():
     def __init__(self, file):
-        info(file)
+        debug('ROScript()', file)
         self.file = file
         path = listget(Path(file).parts)
         self.name = path[-1]
         self.folder = path[-2]
-        debug(self.__dict__)
+        trace('ROScript()', self.__dict__)
         content = None
         with open(self.file) as f:
             content = f.read()
@@ -69,9 +69,10 @@ class ROScript():
         if not exists_dir(path):
             os.makedirs(path, exist_ok=True)
         path += self.name
-        info('writing to:', path)
         if exists(path):
-            info("appending")
+            debug("appending to:", path)
+        else:
+            debug('writing to:', path)
         with open(path, "a") as outfile:
             outfile.write( repr(self) )
 

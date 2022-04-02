@@ -1,6 +1,7 @@
 from os import stat
 from ro_randomizer.base import *
 from ro_randomizer.script import *
+from ro_randomizer.map import *
 import yaml
 
 # https://github.com/rathena/rathena/blob/master/doc/script_commands.txt#L133-L135
@@ -22,23 +23,56 @@ mob_scripts = {}
 maps_mobs = {}
 
 def mobs_rando():
-    global monsters_levels, mob_scripts, maps_mobs
+    info('starting mobs_rando()')
+    set_danger_ratings()
     monsters_levels.clear()
-    seed = get_settings()['seed']
     monsters_files = get_settings()['inputs']['monsters']
     for filename in monsters_files:
+        info('reading monsters file:', filename)
         with open(filename, "r") as file:
             read_monsters_yml(file)
 
     for input in get_settings()['inputs']['mobs']:
+        info('reading mobs from: ' + input+'/*')
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
                 mob_scripts[file] = MobScript(file)
 
+    info('randomizing mobs')
     for map in maps.values():
         rando_map_mobs(map)
 
     write_mobs(mob_scripts, get_settings()['outputs']['mobs'])
+
+
+def set_danger_ratings():
+    # TODO: pathfinding?
+    seed = get_settings()['seed']
+    danger_settings = get_settings()['danger']
+    mult = danger_settings['max_city_mult']
+    lowbie_city_distance = danger_settings['city_distance']
+    dungeon_mult = danger_settings['dungeon_mult']
+
+    for m in maps.values():
+        if m.type == MapTypes.CITY:
+            rng = random.Random(crc32('set_danger_ratings city', m.name, seed))
+            m.danger = rng.uniform(0.1, 1)
+
+    for m in maps.values():
+        if m.type == MapTypes.CITY or not m.closest_city in maps:
+            continue
+        city = maps[m.closest_city]
+        rng = random.Random(crc32('set_danger_ratings', m.name, seed))
+        dist = 10000
+        if m.position is not None and city.position is not None:
+            dist = m.position.dist(city.position)
+        if dist <= lowbie_city_distance:
+            m.danger = int(rng.uniform(1, mult) * city.danger * clamp(dist/300, 0.25, mult))
+        else:
+            m.danger = rng.randint(10, 100)
+        if m.type == MapTypes.DUNGEON:
+            m.danger *= dungeon_mult
+        m.danger = clamp(m.danger, 1, 200)
 
 
 def rando_map_mobs(map):
@@ -48,34 +82,28 @@ def rando_map_mobs(map):
     danger = map.danger
     seed = get_settings()['seed']
     rng = random.Random( crc32('rando_map_mobs', seed, map.name ) )
-    num = rng.randint(3, 6)
+    num = rng.randint(4, 7)
     while len(monsters) < num:
         add_monster(danger, rng, monsters)
 
+    shuffled = []
     for mob in maps_mobs[map.name]:
-        rando_mob(mob, rng, monsters)
+        if len(shuffled) == 0:
+            shuffled = rng.sample(monsters, k=len(monsters))
+        m = shuffled.pop()
+        mob.monster_name = 'Lvl ' + str(m['Level']) + ' ' + m['Name']
+        mob.monster_id = m['Id']
+        mob.update()
 
 
-def rando_mob(mob, rng, monsters):
-    global maps
-    map = maps.get(mob.map)
-    if map is None:
-        return
-    danger = map.danger
-    m = rng.choice(monsters)
-    mob.monster_name = m['Name']
-    mob.monster_id = m['Id']
-    mob.update()
-
-
-def add_monster(danger, rng, monsters, min=-5, max=5):
+def add_monster(danger, rng, monsters, min=-10, max=5):
     global monsters_levels
     level = -1
     while level not in monsters_levels:
-        level = danger + rng.randint(min, max)
+        min = clamp(min*1.5, -danger, -1)
+        max = clamp(max*1.5, 1, 200)
+        level = danger + rng.randint(int(min), int(max))
         level = clamp(level, 1, 200)
-        min = int(clamp(min*2, 0, 200))
-        max = int(clamp(max*1.25, 0, 200))
 
     choices = list(monsters_levels[level].values())
     m = rng.choice(choices)
@@ -90,12 +118,16 @@ def read_monsters_yml(file):
     global monsters_levels
     monsters = yaml.safe_load(file)['Body']
     for m in monsters:
+        if m['AegisName'].startswith('E_') or m['AegisName'].startswith('G_'):
+            continue
         id = m['Id']
         level = m.get('Level')
         if not level:
-            info(m['Name'] + " doesn't have a level")
+            warning(m['Name'] + ' ('+str(id)+") doesn't have a level")
             m['Level'] = 1
             level = 1
+        elif level == 1:
+            info(m['Name'] + ' ('+str(id)+") is level 1")
         if level not in monsters_levels:
             monsters_levels[level] = {id: m}
         else:
@@ -112,6 +144,7 @@ class MobSpawn():
         self.statement = statement
         self.map = statement.args[0][0]
         self.monster_name = statement.args[2][0]
+        self.level = None #statement.args[2].get(1, None)
         self.monster_id = statement.args[3][0]
 
         # self.position = IntPoint(0, 0)
@@ -127,7 +160,10 @@ class MobSpawn():
         # self.delay2 = statement.args[3].get(3)
 
     def update(self):
-        self.statement.args[2][0] = self.monster_name
+        if self.level:
+            self.statement.args[2] = [self.monster_name, self.level]
+        else:
+            self.statement.args[2] = [self.monster_name]
         self.statement.args[3][0] = self.monster_id
 
 

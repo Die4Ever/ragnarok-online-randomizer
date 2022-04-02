@@ -1,7 +1,11 @@
 {
-    "city_distance": 100,
-    "lowbie_city_distance": 300,
-    "max_lowbie_danger_rating": 10,
+    "//comment": "these settings can be overwritten in your settings.json file, see ro_rando.py for how the config files are merged",
+
+    "danger": {
+        "city_distance": 1000,
+        "max_city_mult": 5,
+        "dungeon_mult": 3
+    },
     "location_anchors": [
         { "map": "prontera", "x": 0, "y": 0 },
         { "map": "ayothaya", "x": 1600, "y": 1800},

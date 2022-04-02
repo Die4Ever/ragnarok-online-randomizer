@@ -20,6 +20,7 @@ except FileNotFoundError as e:
     e2 = Exception('ERROR: You need to copy settings.example.json to '+args['settings_file']+' and adjust the paths.')
     raise e2 from e
 
+# merge the settings json files, favoring settings over default_settings
 merged = dict(settings, **default_settings)
 
 set_settings(merged)
