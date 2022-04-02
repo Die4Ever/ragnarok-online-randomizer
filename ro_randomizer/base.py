@@ -209,10 +209,17 @@ class IntPoint(Point):
         self.x = int(x)
         self.y = int(y)
 
+# why isn't this in standard python?
+class listget(list):
+    def get(self, index, default=None):
+        try:
+            return self[index]
+        except IndexError:
+            return default
 
-class Matrix(list):
+class Matrix(listget):
     def __init__(self, width, height):
-        list.__init__(self, [[None for y in range(height)] for x in range(width)])
+        listget.__init__(self, [[None for y in range(height)] for x in range(width)])
 
     def ContainsPoint(self, p):
         return p.x >= 0 and p.y >= 0 and p.x < len(self) and p.y < len(self[0])

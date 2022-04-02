@@ -25,7 +25,7 @@ class ScriptStatement():
         return ret[:-1]
 
 
-class CodeTree(list):
+class CodeTree(listget):
     def __init__(self, content, start_idx):
         self.content = content
         self.type = 'tree'
@@ -47,14 +47,16 @@ class CodeTree(list):
 
 class ROScript():
     def __init__(self, file):
+        info(file)
         self.file = file
-        path = list(Path(file).parts)
+        path = listget(Path(file).parts)
         self.name = path[-1]
         self.folder = path[-2]
+        debug(self.__dict__)
         content = None
         with open(self.file) as f:
             content = f.read()
-        self.root = parse_script(content)
+        self.root: CodeTree = parse_script(content)
 
     def __str__(self):
         return self.file + ' ' + str(self.root)
@@ -81,9 +83,9 @@ def parse_script_line(content, sub, start_idx, end_idx):
         return None
 
     tabs = line.split('\t')
-    args = []
+    args = listget()
     for t in tabs:
-        args.append(t.split(','))
+        args.append(listget(t.split(',')))
 
     type = None
     if len(args) > 1 and len(args[1]) > 0:
@@ -97,7 +99,7 @@ def parse_script_line(content, sub, start_idx, end_idx):
 
 
 
-def parse_script(content, sub=False, idx=-1):
+def parse_script(content, sub=False, idx=-1) -> CodeTree:
     # if sub is true then we're inside of the curly braces of a script
     # so we would need to look for : to start a new tree branch, and ; to end a line
     in_block_comment = False
@@ -156,3 +158,30 @@ def parse_script(content, sub=False, idx=-1):
         tree.append(t)
     return tree
 
+
+def write_scripts(scripts, output_path, description=''):
+    if get_settings().get('dry_run'):
+        warning('dry_run is enabled, not writing any files')
+        return False
+
+    if exists_dir(output_path):
+        if not get_settings().get('unattended'):
+            input("Press enter to delete old "+output_path+'\n(set unattended to true in your settings to skip this confirmation)')
+        notice("Removing old "+output_path)
+        shutil.rmtree(output_path)
+    if not exists_dir(output_path):
+        os.makedirs(output_path, exist_ok=True)
+
+    notice('writing scripts to:', output_path)
+
+    with open(output_path + ' randomizer_info.txt', "w") as outfile:
+        out = '/*\n'
+        out += datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n'
+        out += 'settings: ' + json.dumps(get_settings(), indent=4) + '\n\n'
+        out += description
+        out += '\n\n*/\n'
+        outfile.write( out )
+
+    for s in scripts.values():
+        s.write(output_path)
+    return True

@@ -216,38 +216,15 @@ def new_warp(statement, folder):
     w = Warp(statement)
     add_warp(w, type)
 
-class MapScript():
+class MapScript(ROScript):
     # approximate location? list of the warps in this map? a desired danger rating?
     def __init__(self, file):
-        info(file)
-        self.file = file
-        path = list(Path(file).parts)
-        self.name = path[-1]
-        self.folder = path[-2]
-        debug(self.__dict__)
-        self.script = ROScript(file)
+        super().__init__(file)
         if self.folder == 'other' or self.folder == 'warps':
             return
-        for s in self.script.root:
+        for s in self.root:
             if s.type in ['warp','warp2']:
                 new_warp(s, self.folder)
-
-    def read_file(self):
-        self.content = None
-        with open(self.file) as f:
-            self.content = f.read()
-        self.warps = []
-        code = parse_script(self.content)
-        # warps from script triggers will be changed along with the normal teleporters to the same map
-        # need to identify which maps are only reachable from script triggers
-        trace(json.dumps(code, indent=1))
-        for t in code:
-            if len(t) > 1 and type(t[1]) == str:
-                if t[1] in ['warp', 'warp2']:
-                    self.warps.append(t)
-                    debug(t[2])
-        debug(self.warps)
-        info(self.name, "warps:", len(self.warps))
 
 
 def read_gat_file(name):

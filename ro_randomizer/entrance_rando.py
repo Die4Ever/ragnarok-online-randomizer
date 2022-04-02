@@ -228,31 +228,8 @@ def write_warps(maps, map_scripts, output_path):
                 statement.args[3][3] = w.toPos.x
                 statement.args[3][4] = w.toPos.y
 
-    if get_settings().get('dry_run'):
-        warning('dry_run is enabled, not writing any files')
-        return
-
-    if exists_dir(output_path):
-        if not get_settings().get('unattended'):
-            input("Press enter to delete old "+output_path+'\n(set unattended to true in your settings to skip this confirmation)')
-        notice("Removing old "+output_path)
-        shutil.rmtree(output_path)
-    if not exists_dir(output_path):
-        os.makedirs(output_path, exist_ok=True)
-
-    notice('writing all warps to:', output_path)
-
-    with open(output_path + ' randomizer_info.txt', "w") as outfile:
-        out = '/*\n'
-        out += datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n'
-        out += 'settings: ' + json.dumps(get_settings(), indent=4) + '\n\n'
-        out += world_to_string(120, 50)
-        out += '\n\n*/\n'
-        outfile.write( out )
-
-    for m in map_scripts.values():
-        if m.script:
-            m.script.write(output_path)
+    success = write_scripts(map_scripts, output_path, world_to_string(120, 50))
+    return success
 
 
 def assertWarps(maps, error=False):
