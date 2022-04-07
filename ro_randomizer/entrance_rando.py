@@ -26,15 +26,27 @@ def entrance_rando():
 
     printHeader("ENTRANCE RANDO!")
 
+    with open('gat_cache.json') as f:
+        gat_cache = json.load(f)
+        for m in gat_cache.keys():
+            s = gat_cache[m]
+            map_sizes[m] = IntPoint(s['x'], s['y'])
+
     for input in settings['inputs']['gat']:
-        for file in insensitive_glob(input+'/*'):
-            if file.endswith('.gat'):
-                read_gat_file(file)
+        try:
+            for file in insensitive_glob(input+'/*'):
+                if file.endswith('.gat'):
+                    read_gat_file(file)
+        except Exception as e:
+            printError(e)
 
     for input in settings['inputs']['warps']:
         for file in insensitive_glob(input+'/*'):
             if file.endswith('.txt'):
                 map_scripts[file] = MapScript(file)
+
+    with open('gat_cache.json', 'w') as f:
+        json.dump(map_sizes, f, default=lambda x:x.__dict__)
 
     estimate_warp_offsets()
     estimate_positions(settings['location_anchors'])
