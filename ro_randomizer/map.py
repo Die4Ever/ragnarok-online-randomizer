@@ -1,6 +1,8 @@
 from ro_randomizer.base import *
 from ro_randomizer.script import *
 
+indoor_re = re.compile(r'_in\d*$')
+
 class MapTypes(Enum):
     UNKNOWN = 0
     FIELD = 1
@@ -36,8 +38,7 @@ class Warp():
             to = 'None'
         else:
             to += ' ' + str(self.toPos)
-        return self.map + ' ' + str(self.fromPos) + ' -> ' + to + ' ('+self.statements[0].args[3][2]+')'
-
+        return self.map + ' ' + str(self.fromPos) + ' ' + self.warpname + ' -> ' + to #+ ' ('+self.statements[0].args[3][2]+')'
 
 class Map():
     def __init__(self, name, type):
@@ -45,7 +46,7 @@ class Map():
         self.warps = []
         self.name = name
         self.type = type
-        if name.endswith('_in'):
+        if indoor_re.search(name):
             self.type = MapTypes.INDOORS
 
         ignore_maps = get_settings()['ignore_maps']
@@ -60,7 +61,8 @@ class Map():
             self.size = map_sizes[name]
         except Exception as e:
             self.size = IntPoint(64, 64)
-            warning('Map __init__', e, 'using default size of', self.size)
+            if self.type != MapTypes.IGNORE:
+                warning('Map __init__', e, 'using default size of', self.size)
 
     def append(self, warp):
         global maps
@@ -117,11 +119,14 @@ class Map():
                 continue
             if w.fromPos.dist(fromWarp.toPos) > 12:
                 continue
+            if w.toPos.dist(fromWarp.fromPos) > 12:
+                continue
             offset = w.fromPos.subtract(fromWarp.toPos)
             newInPos = w.fromPos.subtract(offset)
             if w.inPos is None:
                 w.inPos = newInPos
             else:
+                warning('estimate_warp_offsets again?', w, fromWarp)
                 w.inPos = w.inPos.add(newInPos).multiply_scalar(0.5)
 
 

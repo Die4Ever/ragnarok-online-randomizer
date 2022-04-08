@@ -19,11 +19,11 @@ class MapsGrid(ShuffledGrid):
     def clear_connections(self):
         for map in self.items:
             map.position = None
-            if map.type == MapTypes.INDOORS or map.conns_in == 0:
+            if map.type == MapTypes.INDOORS or map.type == MapTypes.IGNORE or map.conns_in == 0:
                 continue
             for w in map.warps:
                 to = maps.get(w.toMap)
-                if w.toMap != w.map and to and to.type != MapTypes.INDOORS:
+                if w.toMap != w.map and to and to.type != MapTypes.INDOORS and to.type != MapTypes.IGNORE:
                     w.toMap = None
 
     def connect_warps(self, warps1, warps2, move, map1size):
@@ -68,7 +68,7 @@ class WorldGrid(ShuffledGrid):
         for biome in items:
             for map in biome.items:
                 map.position = None
-                if map.type != MapTypes.INDOORS and map.conns_in > 0:
+                if map.type != MapTypes.INDOORS and map.type != MapTypes.IGNORE and map.conns_in > 0:
                     for w in map.warps:
                         if w.toMap is None:
                             self.warps.append(w)

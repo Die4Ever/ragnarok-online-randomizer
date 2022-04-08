@@ -246,7 +246,7 @@ def write_warps(maps, map_scripts, output_path):
 
 def assertWarps(maps, error=False):
     for m in maps.values():
-        if m.type == MapTypes.INDOORS or m.conns_in == 0:
+        if m.type == MapTypes.INDOORS or m.type == MapTypes.IGNORE or m.conns_in == 0:
             continue
         good = False
         for w in m.warps:
@@ -254,9 +254,22 @@ def assertWarps(maps, error=False):
                 if error:
                     raise Exception('assertWarps with error enabled, found warp to None: '+str(m)+' '+str(w)+', '+repr(w.statements[0]))
                 continue
+
+            m2 = maps.get(w.toMap)
+            if m2 and (m2.type == MapTypes.INDOORS or m2.type == MapTypes.IGNORE):
+                continue
+
             if w.inPos == w.fromPos:
                 warning('\nassertWarps found w.inPos == w.fromPos:', m, w)
-            m2 = maps.get(w.toMap)
+            if w.inPos.dist(w.fromPos) > 20:
+                warning('\nassertWarps found w.inPos too far from w.fromPos:', m, w, w.inPos.dist(w.fromPos))
+
+            for w2 in m.warps:
+                if w == w2:
+                    continue
+                if w.fromPos.dist(w2.fromPos) < 10:
+                    warning('\nassertWarps found warps too close together:', m, w, w2, w.fromPos.dist(w2.fromPos))
+
             if not m2 or len(m2.warps) == 0:
                 continue
             for w2 in m2.warps:

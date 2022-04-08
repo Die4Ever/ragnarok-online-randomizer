@@ -7,15 +7,17 @@
         "dungeon_mult": 3
     },
     "location_anchors": [
-        { "map": "prontera", "x": 0, "y": 0 },
-        { "map": "ayothaya", "x": 1600, "y": 1800},
-        { "map": "moscovia", "x": 1800, "y": -2100},
-        { "map": "morocc", "x": -1700, "y": -1700}
+        { "map": "prontera", "x": 0, "y": 0 }
     ],
     "ignore_maps": [
         "prt_fild08a", "prt_fild08b", "prt_fild08c", "prt_fild08d",
         "prt_church", "prt_cas", "prt_gld", "prt_cas_q",
         "izlude_a", "izlude_b", "izlude_c", "izlude_d",
+        "iz_ac01_a", "iz_ac01_b", "iz_ac01_c", "iz_ac01_d",
+        "iz_ac02_a", "iz_ac02_b", "iz_ac02_c", "iz_ac02_d",
+        "iz_int", "iz_int01", "iz_int02", "iz_int03", "iz_int04",
+        "iz_ac01", "iz_ac01_a", "iz_ac01_b", "iz_ac01_c", "iz_ac01_d",
+        "iz_ac02", "iz_ac02_a", "iz_ac02_b", "iz_ac02_c", "iz_ac02_d",
         "nif_fild01", "nif_fild02",
         "yggdrasil01"
     ]

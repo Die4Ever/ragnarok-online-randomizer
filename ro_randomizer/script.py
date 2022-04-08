@@ -54,8 +54,12 @@ class ROScript():
         self.folder = path[-2]
         trace('ROScript()', self.__dict__)
         content = None
-        with open(self.file) as f:
-            content = f.read()
+        try:
+            with open(self.file) as f:
+                content = f.read()
+        except Exception as e:
+            printError('exception reading file', self.file, e)
+            return
         self.root: CodeTree = parse_script(content)
 
     def __str__(self):
