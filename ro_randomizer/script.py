@@ -55,8 +55,8 @@ class ROScript():
         trace('ROScript()', self.__dict__)
         content = None
         try:
-            with open(self.file) as f:
-                content = f.read()
+            with open(self.file, 'rb') as f:
+                content = f.read().decode('windows-1252')
         except Exception as e:
             printError('exception reading file', self.file, e)
             return
