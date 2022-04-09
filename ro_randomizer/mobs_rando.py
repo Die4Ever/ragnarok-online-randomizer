@@ -118,7 +118,7 @@ def read_monsters_yml(file):
     global monsters_levels
     monsters = yaml.safe_load(file)['Body']
     for m in monsters:
-        if m['AegisName'].startswith('E_') or m['AegisName'].startswith('G_'):
+        if m['AegisName'].startswith('E_') or m['AegisName'].startswith('G_') or m['Name'] == 'Thicket':
             continue
         id = m['Id']
         level = m.get('Level')
