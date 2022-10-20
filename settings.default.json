@@ -20,5 +20,8 @@
         "iz_ac02", "iz_ac02_a", "iz_ac02_b", "iz_ac02_c", "iz_ac02_d",
         "nif_fild01", "nif_fild02",
         "yggdrasil01"
+    ],
+    "ignore_warps": [
+        "EinF01Dn02_EinF05Up02", "prtf024"
     ]
 }

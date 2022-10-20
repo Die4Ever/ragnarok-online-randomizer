@@ -179,7 +179,7 @@ def write_scripts(scripts, output_path, description=''):
 
     notice('writing scripts to:', output_path)
 
-    with open(output_path + ' randomizer_info.txt', "w") as outfile:
+    with open(output_path + 'randomizer_info.txt', "w") as outfile:
         out = '/*\n'
         out += datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n'
         out += 'settings: ' + json.dumps(get_settings(), indent=4) + '\n\n'
